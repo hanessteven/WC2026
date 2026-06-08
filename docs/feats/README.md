@@ -12,10 +12,10 @@ Build features in numbered order. Each spec is self-contained and lists its depe
 | # | Feature | Depends on | Status |
 |---|---------|-----------|--------|
 | 01 | [Project Scaffolding & Configuration](01_project_scaffolding.md) | — | ✅ |
-| 02 | [Database Schema & RLS Policies](02_database_schema_rls.md) | 01 | 🔲 |
-| 03 | [Data Models (Pydantic)](03_data_models.md) | 02 | 🔲 |
-| 04 | [Seed Data](04_seed_data.md) | 02, 03 | 🔲 |
-| 05 | [Authentication (Magic Link + Whitelist)](05_authentication.md) | 01, 02 | 🔲 |
+| 02 | [Database Schema & RLS Policies](02_database_schema_rls.md) | 01 | ✅ |
+| 03 | [Data Models (Pydantic)](03_data_models.md) | 02 | ✅ |
+| 04 | [Seed Data](04_seed_data.md) | 02, 03 | ✅ |
+| 05 | [Authentication (Magic Link + Whitelist)](05_authentication.md) | 01, 02 | ✅ |
 | 06 | [Group Stage Predictions](06_group_stage_predictions.md) | 03, 04, 05 | 🔲 |
 | 07 | [Upfront Champion Pick](07_champion_pick.md) | 03, 05 | 🔲 |
 | 08 | [Golden Boot Salary-Cap Draft](08_golden_boot_draft.md) | 03, 04, 05 | 🔲 |

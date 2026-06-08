@@ -217,6 +217,9 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
+# Seed data containing PII
+seed/allowed_emails.yaml
+
 .idea
 .idea/
 /.idea/

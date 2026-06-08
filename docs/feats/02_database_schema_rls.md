@@ -1,6 +1,6 @@
 # 02 — Database Schema & RLS Policies
 
-**Status:** 🔲 Not started
+**Status:** ✅ Done
 **Depends on:** 01
 
 ## Goal

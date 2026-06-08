@@ -1,6 +1,6 @@
 # 04 — Seed Data
 
-**Status:** 🔲 Not started
+**Status:** ✅ Done
 **Depends on:** 02, 03
 
 ## Goal

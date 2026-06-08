@@ -1,0 +1,7 @@
+# Copy this to allowed_emails.yaml and fill in your group's emails.
+# allowed_emails.yaml is gitignored — never commit real emails.
+
+emails:
+  - "you@example.com"
+  # - "friend1@example.com"
+  # - "friend2@example.com"

@@ -1,0 +1,139 @@
+# Golden Boot Salary-Cap Draft — Player List
+# Total budget per user: $100
+# Tiers: 1 = most expensive, 4 = value picks
+# Edit costs before running the loader to rebalance as desired.
+
+players:
+  # ── Tier 1 ($22–30): Tournament favourites ─────────────────────────────────
+  - name: "Kylian Mbappé"
+    team_name: "France"
+    tier: 1
+    cost: 30
+
+  - name: "Harry Kane"
+    team_name: "England"
+    tier: 1
+    cost: 28
+
+  - name: "Erling Haaland"
+    team_name: "Norway"
+    tier: 1
+    cost: 25
+
+  - name: "Lionel Messi"
+    team_name: "Argentina"
+    tier: 1
+    cost: 22
+
+  # ── Tier 2 ($14–18): Strong contenders ────────────────────────────────────
+  - name: "Vinicius Jr"
+    team_name: "Brazil"
+    tier: 2
+    cost: 18
+
+  - name: "Lamine Yamal"
+    team_name: "Spain"
+    tier: 2
+    cost: 17
+
+  - name: "Jude Bellingham"
+    team_name: "England"
+    tier: 2
+    cost: 16
+
+  - name: "Cristiano Ronaldo"
+    team_name: "Portugal"
+    tier: 2
+    cost: 15
+
+  - name: "Mikel Oyarzabal"
+    team_name: "Spain"
+    tier: 2
+    cost: 14
+
+  - name: "Memphis Depay"
+    team_name: "Netherlands"
+    tier: 2
+    cost: 14
+
+  # ── Tier 3 ($8–12): Mid-range value ───────────────────────────────────────
+  - name: "Antoine Griezmann"
+    team_name: "France"
+    tier: 3
+    cost: 12
+
+  - name: "Raphinha"
+    team_name: "Brazil"
+    tier: 3
+    cost: 11
+
+  - name: "Phil Foden"
+    team_name: "England"
+    tier: 3
+    cost: 10
+
+  - name: "Christian Pulisic"
+    team_name: "United States"
+    tier: 3
+    cost: 10
+
+  - name: "Pedri"
+    team_name: "Spain"
+    tier: 3
+    cost: 10
+
+  - name: "Pedro"
+    team_name: "Brazil"
+    tier: 3
+    cost: 9
+
+  - name: "Darwin Núñez"
+    team_name: "Uruguay"
+    tier: 3
+    cost: 9
+
+  - name: "Bukayo Saka"
+    team_name: "England"
+    tier: 3
+    cost: 8
+
+  - name: "Kaoru Mitoma"
+    team_name: "Japan"
+    tier: 3
+    cost: 8
+
+  # ── Tier 4 ($3–6): Sleeper picks ──────────────────────────────────────────
+  - name: "Hirving Lozano"
+    team_name: "Mexico"
+    tier: 4
+    cost: 6
+
+  - name: "Federico Valverde"
+    team_name: "Uruguay"
+    tier: 4
+    cost: 6
+
+  - name: "Leroy Sané"
+    team_name: "Germany"
+    tier: 4
+    cost: 5
+
+  - name: "Ricardo Pepi"
+    team_name: "United States"
+    tier: 4
+    cost: 5
+
+  - name: "Sofiane Boufal"
+    team_name: "Morocco"
+    tier: 4
+    cost: 4
+
+  - name: "Jordan Ayew"
+    team_name: "Ghana"
+    tier: 4
+    cost: 3
+
+  - name: "Richie Laryea"
+    team_name: "Canada"
+    tier: 4
+    cost: 3

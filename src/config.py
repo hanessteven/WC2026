@@ -34,3 +34,7 @@ def get_supabase_key() -> str:
 def get_admin_emails() -> list[str]:
     raw = _require("ADMIN_EMAILS")
     return [e.strip().lower() for e in raw.split(",") if e.strip()]
+
+
+def get_supabase_service_key() -> str:
+    return _require("SUPABASE_SERVICE_KEY")

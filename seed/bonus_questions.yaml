@@ -1,0 +1,54 @@
+# Bonus Questions — pre-tournament predictions
+# point_value: points awarded per correct answer
+# correct_options: leave null; admin fills this in via the admin panel
+
+questions:
+  - question_text: "Which host nation will advance the farthest?"
+    valid_options:
+      - "United States"
+      - "Mexico"
+      - "Canada"
+      - "Tie"
+    point_value: 2
+
+  - question_text: "How many Round of 32 matches will be decided by penalties?"
+    valid_options:
+      - "0–1"
+      - "2–3"
+      - "4–5"
+      - "6+"
+    point_value: 2
+
+  - question_text: "Which confederation will have the most teams in the Quarterfinals?"
+    valid_options:
+      - "UEFA"
+      - "CONMEBOL"
+      - "CONCACAF"
+      - "CAF"
+      - "AFC"
+      - "OFC"
+      - "Tie"
+    point_value: 2
+
+  - question_text: "Which group will have the highest total goals scored?"
+    valid_options:
+      - "Group A"
+      - "Group B"
+      - "Group C"
+      - "Group D"
+      - "Group E"
+      - "Group F"
+      - "Group G"
+      - "Group H"
+      - "Group I"
+      - "Group J"
+      - "Group K"
+      - "Group L"
+      - "Tie"
+    point_value: 2
+
+  - question_text: "Will there be a red card in the Final?"
+    valid_options:
+      - "Yes"
+      - "No"
+    point_value: 2
