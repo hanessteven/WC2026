@@ -1,6 +1,6 @@
 # 01 — Project Scaffolding & Configuration
 
-**Status:** 🔲 Not started
+**Status:** ✅ Done
 **Depends on:** —
 
 ## Goal
