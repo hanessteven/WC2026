@@ -1,6 +1,6 @@
 # 03 — Data Models (Pydantic)
 
-**Status:** 🔲 Not started
+**Status:** ✅ Done
 **Depends on:** 02
 
 ## Goal

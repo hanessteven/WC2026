@@ -1,6 +1,6 @@
 # 05 — Authentication (Magic Link + Whitelist)
 
-**Status:** 🔲 Not started
+**Status:** ✅ Done
 **Depends on:** 01, 02
 
 ## Goal
