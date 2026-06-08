@@ -1,0 +1,124 @@
+# 2026 FIFA World Cup — Official Group Draw
+# Source: FIFA official draw, December 5, 2025
+# 12 groups × 4 teams = 48 teams
+
+groups:
+  A:
+    - name: "Mexico"
+      flag_emoji: "🇲🇽"
+    - name: "South Africa"
+      flag_emoji: "🇿🇦"
+    - name: "South Korea"
+      flag_emoji: "🇰🇷"
+    - name: "Czechia"
+      flag_emoji: "🇨🇿"
+
+  B:
+    - name: "Canada"
+      flag_emoji: "🇨🇦"
+    - name: "Bosnia-Herzegovina"
+      flag_emoji: "🇧🇦"
+    - name: "Qatar"
+      flag_emoji: "🇶🇦"
+    - name: "Switzerland"
+      flag_emoji: "🇨🇭"
+
+  C:
+    - name: "Brazil"
+      flag_emoji: "🇧🇷"
+    - name: "Morocco"
+      flag_emoji: "🇲🇦"
+    - name: "Haiti"
+      flag_emoji: "🇭🇹"
+    - name: "Scotland"
+      flag_emoji: "🏴󠁧󠁢󠁳󠁣󠁴󠁿"
+
+  D:
+    - name: "United States"
+      flag_emoji: "🇺🇸"
+    - name: "Paraguay"
+      flag_emoji: "🇵🇾"
+    - name: "Australia"
+      flag_emoji: "🇦🇺"
+    - name: "Türkiye"
+      flag_emoji: "🇹🇷"
+
+  E:
+    - name: "Germany"
+      flag_emoji: "🇩🇪"
+    - name: "Curacao"
+      flag_emoji: "🇨🇼"
+    - name: "Ivory Coast"
+      flag_emoji: "🇨🇮"
+    - name: "Ecuador"
+      flag_emoji: "🇪🇨"
+
+  F:
+    - name: "Netherlands"
+      flag_emoji: "🇳🇱"
+    - name: "Japan"
+      flag_emoji: "🇯🇵"
+    - name: "Sweden"
+      flag_emoji: "🇸🇪"
+    - name: "Tunisia"
+      flag_emoji: "🇹🇳"
+
+  G:
+    - name: "Belgium"
+      flag_emoji: "🇧🇪"
+    - name: "Egypt"
+      flag_emoji: "🇪🇬"
+    - name: "Iran"
+      flag_emoji: "🇮🇷"
+    - name: "New Zealand"
+      flag_emoji: "🇳🇿"
+
+  H:
+    - name: "Spain"
+      flag_emoji: "🇪🇸"
+    - name: "Cape Verde"
+      flag_emoji: "🇨🇻"
+    - name: "Saudi Arabia"
+      flag_emoji: "🇸🇦"
+    - name: "Uruguay"
+      flag_emoji: "🇺🇾"
+
+  I:
+    - name: "France"
+      flag_emoji: "🇫🇷"
+    - name: "Senegal"
+      flag_emoji: "🇸🇳"
+    - name: "Iraq"
+      flag_emoji: "🇮🇶"
+    - name: "Norway"
+      flag_emoji: "🇳🇴"
+
+  J:
+    - name: "Argentina"
+      flag_emoji: "🇦🇷"
+    - name: "Algeria"
+      flag_emoji: "🇩🇿"
+    - name: "Austria"
+      flag_emoji: "🇦🇹"
+    - name: "Jordan"
+      flag_emoji: "🇯🇴"
+
+  K:
+    - name: "Portugal"
+      flag_emoji: "🇵🇹"
+    - name: "Congo DR"
+      flag_emoji: "🇨🇩"
+    - name: "Uzbekistan"
+      flag_emoji: "🇺🇿"
+    - name: "Colombia"
+      flag_emoji: "🇨🇴"
+
+  L:
+    - name: "England"
+      flag_emoji: "🏴󠁧󠁢󠁥󠁮󠁧󠁿"
+    - name: "Croatia"
+      flag_emoji: "🇭🇷"
+    - name: "Ghana"
+      flag_emoji: "🇬🇭"
+    - name: "Panama"
+      flag_emoji: "🇵🇦"
