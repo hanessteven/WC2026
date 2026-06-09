@@ -38,24 +38,25 @@ for i, letter in enumerate(groups):
     saved_ranking: list[str] = (existing.get(letter) or {}).get("predicted_ranking") or []
 
     with (col_l if i % 2 == 0 else col_r):
-        st.markdown(f"**Group {letter}**")
-        picks: list[str] = []
-        for pos, label in enumerate(["🥇 1st", "🥈 2nd", "🥉 3rd", "4th"]):
-            if len(saved_ranking) > pos and saved_ranking[pos] in names:
-                default_idx = names.index(saved_ranking[pos])
-            else:
-                default_idx = pos  # natural seed order if nothing saved
-            pick = st.selectbox(
-                label,
-                options=names,
-                index=default_idx,
-                key=f"grp_{letter}_{pos}",
-                format_func=lambda n, fm=flag_map: f"{fm.get(n, '')} {n}".strip(),
-                disabled=locked,
-                label_visibility="visible",
-            )
-            picks.append(pick)
-        current_rankings[letter] = picks
+        with st.container(border=True):
+            st.markdown(f"**Group {letter}**")
+            picks: list[str] = []
+            for pos, label in enumerate(["🥇 1st", "🥈 2nd", "🥉 3rd", "4th"]):
+                if len(saved_ranking) > pos and saved_ranking[pos] in names:
+                    default_idx = names.index(saved_ranking[pos])
+                else:
+                    default_idx = pos  # natural seed order if nothing saved
+                pick = st.selectbox(
+                    label,
+                    options=names,
+                    index=default_idx,
+                    key=f"grp_{letter}_{pos}",
+                    format_func=lambda n, fm=flag_map: f"{fm.get(n, '')} {n}".strip(),
+                    disabled=locked,
+                    label_visibility="visible",
+                )
+                picks.append(pick)
+            current_rankings[letter] = picks
 
 # ── Third-place advancers ─────────────────────────────────────────────────────
 st.divider()

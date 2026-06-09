@@ -153,7 +153,7 @@ def load_bonus_questions() -> list[dict]:
     result = (
         get_admin_client()
         .table("bonus_question_defs")
-        .select("id, question_text, valid_options, point_value")
+        .select("id, question_text, valid_options, point_value, correct_options")
         .order("id")
         .execute()
     )
