@@ -5,6 +5,7 @@ import streamlit as st
 from src.auth import (
     get_current_user,
     get_profile,
+    handle_magic_link_callback,
     set_display_name,
     show_login_ui,
 )
@@ -15,6 +16,10 @@ st.set_page_config(
     page_icon="⚽",
     layout="centered",
 )
+
+# Handle magic link callback (?token_hash= in URL) before anything else
+if handle_magic_link_callback():
+    st.rerun()
 
 user = get_current_user()
 
