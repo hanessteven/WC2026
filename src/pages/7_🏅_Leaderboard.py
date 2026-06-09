@@ -163,6 +163,7 @@ else:
         else:
             st.caption("No champion pick yet.")
 
+        st.divider()
         st.markdown("**🌍 Group Stage**")
         group_preds = load_group_predictions(uid)
         if not group_preds:
@@ -179,6 +180,7 @@ else:
                     lines.append(f"{pos}. {team} \\*" if advances else f"{pos}. {team}")
                 cols[i % 4].markdown("  \n".join(lines))
 
+        st.divider()
         st.markdown("**⚽ Golden Boot Draft**")
         gb_ids = load_golden_boot_picks(uid)
         if gb_ids:
@@ -191,6 +193,7 @@ else:
         else:
             st.caption("No golden boot picks yet.")
 
+        st.divider()
         st.markdown("**🎯 Bonus Answers**")
         questions = load_bonus_questions()
         answers = load_bonus_answers(uid)
@@ -202,6 +205,10 @@ else:
                     st.markdown(f"→ **{ans}**")
         else:
             st.caption("No bonus answers yet.")
+
+        st.divider()
+        st.markdown("**🏟️ Knockout Bracket**")
+        st.caption("Coming soon — bracket picks will appear here once the knockout stage opens.")
 
     if st.session_state.get("_spy_target"):
         spy_id = st.session_state.pop("_spy_target")
