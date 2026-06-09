@@ -38,3 +38,7 @@ def get_admin_emails() -> list[str]:
 
 def get_supabase_service_key() -> str:
     return _require("SUPABASE_SERVICE_KEY")
+
+
+def get_app_url() -> str:
+    return _require("APP_URL").rstrip("/")
