@@ -17,7 +17,7 @@ def load_teams_by_group() -> dict[str, list[dict]]:
     result = (
         get_admin_client()
         .table("seed_teams")
-        .select("id, name, group_letter, flag_emoji")
+        .select("id, name, group_letter, flag_emoji, is_dark_horse_eligible")
         .order("id")
         .execute()
     )
@@ -97,3 +97,93 @@ def save_champion_pick(user_id: str, champion: str, dark_horse: str | None) -> N
         on_conflict="user_id",
     ).execute()
     load_champion_pick.clear()
+
+
+# ── Golden boot draft ─────────────────────────────────────────────────────────
+
+@st.cache_data(ttl=3600)
+def load_players_by_tier() -> dict[int, list[dict]]:
+    """Return {tier: [{id, name, team_name, tier, cost}, ...]} ordered by cost desc."""
+    from src.db import get_admin_client
+    result = (
+        get_admin_client()
+        .table("seed_players")
+        .select("id, name, team_name, tier, cost")
+        .order("cost", desc=True)
+        .execute()
+    )
+    tiers: dict[int, list[dict]] = {}
+    for row in result.data:
+        tiers.setdefault(row["tier"], []).append(row)
+    return tiers
+
+
+@st.cache_data(ttl=10)
+def load_golden_boot_picks(user_id: str) -> set[int]:
+    """Return the set of player IDs the user has drafted."""
+    from src.db import get_admin_client
+    result = (
+        get_admin_client()
+        .table("predictions_golden_boot")
+        .select("player_id")
+        .eq("user_id", user_id)
+        .execute()
+    )
+    return {row["player_id"] for row in result.data}
+
+
+def save_golden_boot_picks(user_id: str, player_ids: list[int]) -> None:
+    """Replace all golden boot picks for this user, then invalidate the cache."""
+    from src.db import get_admin_client
+    client = get_admin_client()
+    client.table("predictions_golden_boot").delete().eq("user_id", user_id).execute()
+    if player_ids:
+        client.table("predictions_golden_boot").insert(
+            [{"user_id": user_id, "player_id": pid} for pid in player_ids]
+        ).execute()
+    load_golden_boot_picks.clear()
+
+
+# ── Bonus questions ───────────────────────────────────────────────────────────
+
+@st.cache_data(ttl=3600)
+def load_bonus_questions() -> list[dict]:
+    """Return [{id, question_text, valid_options, point_value}, ...] ordered by id."""
+    from src.db import get_admin_client
+    result = (
+        get_admin_client()
+        .table("bonus_question_defs")
+        .select("id, question_text, valid_options, point_value")
+        .order("id")
+        .execute()
+    )
+    return result.data
+
+
+@st.cache_data(ttl=10)
+def load_bonus_answers(user_id: str) -> dict[int, str]:
+    """Return {question_id: chosen_option} for this user."""
+    from src.db import get_admin_client
+    result = (
+        get_admin_client()
+        .table("predictions_bonus")
+        .select("question_id, chosen_option")
+        .eq("user_id", user_id)
+        .execute()
+    )
+    return {row["question_id"]: row["chosen_option"] for row in result.data}
+
+
+def save_bonus_answers(user_id: str, answers: dict[int, str]) -> None:
+    """Upsert all bonus answers for this user, then invalidate the cache."""
+    from datetime import datetime, timezone
+    from src.db import get_admin_client
+    now = datetime.now(timezone.utc).isoformat()
+    rows = [
+        {"user_id": user_id, "question_id": qid, "chosen_option": option, "updated_at": now}
+        for qid, option in answers.items()
+    ]
+    get_admin_client().table("predictions_bonus").upsert(
+        rows, on_conflict="user_id,question_id"
+    ).execute()
+    load_bonus_answers.clear()

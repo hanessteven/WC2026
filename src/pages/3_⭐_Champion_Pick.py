@@ -23,10 +23,13 @@ locked = is_locked("champion")
 if locked:
     st.warning("🔒 Champion pick is locked — shown read-only.")
 
-# ── Build sorted team list with flags ─────────────────────────────────────────
+# ── Build team lists with flags ───────────────────────────────────────────────
 teams_by_group = load_teams_by_group()
 all_team_dicts = [t for group in teams_by_group.values() for t in group]
 all_teams = sorted(t["name"] for t in all_team_dicts)
+dark_horse_teams = sorted(
+    t["name"] for t in all_team_dicts if t.get("is_dark_horse_eligible", True)
+)
 flag_map = {t["name"]: t.get("flag_emoji") or "" for t in all_team_dicts}
 
 
@@ -55,9 +58,12 @@ champion = st.selectbox(
 
 # ── Dark horse selectbox ───────────────────────────────────────────────────────
 st.subheader("Dark horse (optional)")
-st.caption("Pick a team you think will surprise everyone and reach the quarterfinals.")
+st.caption(
+    "Pick a surprise team you think will reach the quarterfinals. "
+    "Tournament favourites are excluded — this has to be a genuine long shot."
+)
 
-dh_options = [NO_DARK_HORSE] + all_teams
+dh_options = [NO_DARK_HORSE] + dark_horse_teams
 dh_idx = (
     dh_options.index(saved_dark_horse)
     if saved_dark_horse and saved_dark_horse in dh_options

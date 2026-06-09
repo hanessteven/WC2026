@@ -49,11 +49,13 @@ def seed_groups_and_teams(client) -> None:
         for t in teams:
             # Validate shape before insert
             SeedTeam(id=0, name=t["name"], group_letter=letter,
-                     flag_emoji=t.get("flag_emoji"))
+                     flag_emoji=t.get("flag_emoji"),
+                     is_dark_horse_eligible=t.get("dark_horse_eligible", True))
             team_rows.append({
                 "name": t["name"],
                 "group_letter": letter,
                 "flag_emoji": t.get("flag_emoji"),
+                "is_dark_horse_eligible": t.get("dark_horse_eligible", True),
             })
 
     client.table("seed_teams").upsert(team_rows, on_conflict="name").execute()

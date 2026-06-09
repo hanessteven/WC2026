@@ -1,124 +1,178 @@
 # 2026 FIFA World Cup — Official Group Draw
 # Source: FIFA official draw, December 5, 2025
 # 12 groups × 4 teams = 48 teams
+#
+# dark_horse_eligible: false = clear tournament favourite (QF would not be a surprise).
+# Only 10 teams are excluded. Edit this list before running load_seed.py if your
+# group disagrees with the assessment.
+# Ineligible: Brazil, Argentina, France, England, Germany, Spain, Portugal,
+#             Netherlands, Belgium, Uruguay
 
 groups:
   A:
     - name: "Mexico"
       flag_emoji: "🇲🇽"
+      dark_horse_eligible: true
     - name: "South Africa"
       flag_emoji: "🇿🇦"
+      dark_horse_eligible: true
     - name: "South Korea"
       flag_emoji: "🇰🇷"
+      dark_horse_eligible: true
     - name: "Czechia"
       flag_emoji: "🇨🇿"
+      dark_horse_eligible: true
 
   B:
     - name: "Canada"
       flag_emoji: "🇨🇦"
+      dark_horse_eligible: true
     - name: "Bosnia-Herzegovina"
       flag_emoji: "🇧🇦"
+      dark_horse_eligible: true
     - name: "Qatar"
       flag_emoji: "🇶🇦"
+      dark_horse_eligible: true
     - name: "Switzerland"
       flag_emoji: "🇨🇭"
+      dark_horse_eligible: true
 
   C:
     - name: "Brazil"
       flag_emoji: "🇧🇷"
+      dark_horse_eligible: false
     - name: "Morocco"
       flag_emoji: "🇲🇦"
+      dark_horse_eligible: true
     - name: "Haiti"
       flag_emoji: "🇭🇹"
+      dark_horse_eligible: true
     - name: "Scotland"
       flag_emoji: "🏴󠁧󠁢󠁳󠁣󠁴󠁿"
+      dark_horse_eligible: true
 
   D:
     - name: "United States"
       flag_emoji: "🇺🇸"
+      dark_horse_eligible: true
     - name: "Paraguay"
       flag_emoji: "🇵🇾"
+      dark_horse_eligible: true
     - name: "Australia"
       flag_emoji: "🇦🇺"
+      dark_horse_eligible: true
     - name: "Türkiye"
       flag_emoji: "🇹🇷"
+      dark_horse_eligible: true
 
   E:
     - name: "Germany"
       flag_emoji: "🇩🇪"
+      dark_horse_eligible: false
     - name: "Curacao"
       flag_emoji: "🇨🇼"
+      dark_horse_eligible: true
     - name: "Ivory Coast"
       flag_emoji: "🇨🇮"
+      dark_horse_eligible: true
     - name: "Ecuador"
       flag_emoji: "🇪🇨"
+      dark_horse_eligible: true
 
   F:
     - name: "Netherlands"
       flag_emoji: "🇳🇱"
+      dark_horse_eligible: false
     - name: "Japan"
       flag_emoji: "🇯🇵"
+      dark_horse_eligible: true
     - name: "Sweden"
       flag_emoji: "🇸🇪"
+      dark_horse_eligible: true
     - name: "Tunisia"
       flag_emoji: "🇹🇳"
+      dark_horse_eligible: true
 
   G:
     - name: "Belgium"
       flag_emoji: "🇧🇪"
+      dark_horse_eligible: false
     - name: "Egypt"
       flag_emoji: "🇪🇬"
+      dark_horse_eligible: true
     - name: "Iran"
       flag_emoji: "🇮🇷"
+      dark_horse_eligible: true
     - name: "New Zealand"
       flag_emoji: "🇳🇿"
+      dark_horse_eligible: true
 
   H:
     - name: "Spain"
       flag_emoji: "🇪🇸"
+      dark_horse_eligible: false
     - name: "Cape Verde"
       flag_emoji: "🇨🇻"
+      dark_horse_eligible: true
     - name: "Saudi Arabia"
       flag_emoji: "🇸🇦"
+      dark_horse_eligible: true
     - name: "Uruguay"
       flag_emoji: "🇺🇾"
+      dark_horse_eligible: false
 
   I:
     - name: "France"
       flag_emoji: "🇫🇷"
+      dark_horse_eligible: false
     - name: "Senegal"
       flag_emoji: "🇸🇳"
+      dark_horse_eligible: true
     - name: "Iraq"
       flag_emoji: "🇮🇶"
+      dark_horse_eligible: true
     - name: "Norway"
       flag_emoji: "🇳🇴"
+      dark_horse_eligible: true
 
   J:
     - name: "Argentina"
       flag_emoji: "🇦🇷"
+      dark_horse_eligible: false
     - name: "Algeria"
       flag_emoji: "🇩🇿"
+      dark_horse_eligible: true
     - name: "Austria"
       flag_emoji: "🇦🇹"
+      dark_horse_eligible: true
     - name: "Jordan"
       flag_emoji: "🇯🇴"
+      dark_horse_eligible: true
 
   K:
     - name: "Portugal"
       flag_emoji: "🇵🇹"
+      dark_horse_eligible: false
     - name: "Congo DR"
       flag_emoji: "🇨🇩"
+      dark_horse_eligible: true
     - name: "Uzbekistan"
       flag_emoji: "🇺🇿"
+      dark_horse_eligible: true
     - name: "Colombia"
       flag_emoji: "🇨🇴"
+      dark_horse_eligible: true
 
   L:
     - name: "England"
       flag_emoji: "🏴󠁧󠁢󠁥󠁮󠁧󠁿"
+      dark_horse_eligible: false
     - name: "Croatia"
       flag_emoji: "🇭🇷"
+      dark_horse_eligible: true
     - name: "Ghana"
       flag_emoji: "🇬🇭"
+      dark_horse_eligible: true
     - name: "Panama"
       flag_emoji: "🇵🇦"
+      dark_horse_eligible: true
