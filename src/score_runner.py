@@ -277,3 +277,6 @@ def recalculate_all_scores() -> None:
             })
 
     client.table("scores").upsert(score_rows, on_conflict="user_id").execute()
+
+    from src.predictions import load_leaderboard
+    load_leaderboard.clear()

@@ -236,3 +236,49 @@ def save_bonus_answers(user_id: str, answers: dict[int, str]) -> None:
         rows, on_conflict="user_id,question_id"
     ).execute()
     load_bonus_answers.clear()
+
+
+# ── Leaderboard ────────────────────────────────────────────────────────────────
+
+@st.cache_data(ttl=60)
+def load_leaderboard() -> list[dict]:
+    """Return leaderboard rows, sorted by total_pts desc then display_name asc.
+
+    Each row: rank, user_id, display_name, email, total_pts, group_stage_pts,
+    bracket_pts, champion_pts, golden_boot_pts, bonus_pts.
+    Tied users share the same rank number.
+    """
+    from src.db import get_admin_client
+    result = (
+        get_admin_client()
+        .table("scores")
+        .select(
+            "user_id, total_pts, group_stage_pts, bracket_pts, "
+            "champion_pts, golden_boot_pts, bonus_pts, "
+            "profiles(display_name, email)"
+        )
+        .execute()
+    )
+    rows = []
+    for r in result.data:
+        profile = r.get("profiles") or {}
+        rows.append({
+            "user_id": r["user_id"],
+            "display_name": profile.get("display_name") or "",
+            "email": profile.get("email") or "",
+            "total_pts": r["total_pts"] or 0,
+            "group_stage_pts": r["group_stage_pts"] or 0,
+            "bracket_pts": r["bracket_pts"] or 0,
+            "champion_pts": r["champion_pts"] or 0,
+            "golden_boot_pts": r["golden_boot_pts"] or 0,
+            "bonus_pts": r["bonus_pts"] or 0,
+        })
+    rows.sort(key=lambda r: (-r["total_pts"], r["display_name"].lower()))
+    prev_total: int | None = None
+    rank = 0
+    for i, row in enumerate(rows):
+        if row["total_pts"] != prev_total:
+            rank = i + 1
+            prev_total = row["total_pts"]
+        row["rank"] = rank
+    return rows
