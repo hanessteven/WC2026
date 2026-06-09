@@ -74,14 +74,17 @@ def load_real_bracket() -> list[dict]:
 def save_bracket_round(round_code: str, matchups: list[dict]) -> None:
     """Upsert matchups for one round. Each dict must have: slot, team_a, team_b."""
     from src.db import get_admin_client
+    from src.predictions import load_bracket_matchups
     rows = [{"round": round_code, "slot": m["slot"], "team_a": m["team_a"], "team_b": m["team_b"]} for m in matchups]
     get_admin_client().table("real_bracket").upsert(rows, on_conflict="round,slot").execute()
     load_real_bracket.clear()
+    load_bracket_matchups.clear()
 
 
 def save_match_results(updates: list[dict]) -> None:
     """Update winner + is_penalty for a list of matchups. Each dict: id, winner, is_penalty."""
     from src.db import get_admin_client
+    from src.predictions import load_bracket_matchups
     client = get_admin_client()
     for upd in updates:
         client.table("real_bracket").update({
@@ -89,6 +92,7 @@ def save_match_results(updates: list[dict]) -> None:
             "is_penalty": upd["is_penalty"],
         }).eq("id", upd["id"]).execute()
     load_real_bracket.clear()
+    load_bracket_matchups.clear()
 
 
 # ── Player goals ───────────────────────────────────────────────────────────────

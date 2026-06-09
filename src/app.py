@@ -16,6 +16,9 @@ restore_session()
 
 user = get_current_user()
 if not user:
+    # Set nav to Home-only before stopping so Streamlit doesn't auto-discover
+    # all pages/ files and render them in the sidebar unauthenticated.
+    st.navigation([st.Page("pages/1_🏠_Home.py", title="Home", icon="🏠")])
     show_login_ui()
     st.stop()
 
@@ -26,6 +29,7 @@ pages = [
     st.Page("pages/3_⭐_Champion_Pick.py", title="Champion Pick", icon="⭐"),
     st.Page("pages/4_⚽_Golden_Boot.py", title="Golden Boot Draft", icon="⚽"),
     st.Page("pages/5_❓_Bonus_Questions.py", title="Bonus Questions", icon="❓"),
+    st.Page("pages/6_🏟️_Knockout_Bracket.py", title="Knockout Bracket", icon="🏟️"),
 ]
 if is_admin(user):
     pages.append(st.Page("pages/99_🔧_Admin.py", title="Admin Panel", icon="🔧"))
