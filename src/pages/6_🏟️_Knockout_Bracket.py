@@ -2,7 +2,7 @@
 import streamlit as st
 
 from src.auth import get_current_user
-from src.admin import load_lock_state
+from src.locks import load_lock_state
 from src.predictions import (
     load_bracket_matchups,
     load_bracket_picks,

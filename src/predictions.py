@@ -5,7 +5,14 @@ Cache seed/reference data aggressively; clear prediction caches after writes.
 """
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 import streamlit as st
+
+from src.db import get_admin_client
+from src.locks import load_lock_state
+from src.models import ChampionPick
+from src.score_runner import recalculate_user_score
 
 
 # ── Seed / reference data (cached long — never changes) ──────────────────────
@@ -13,7 +20,6 @@ import streamlit as st
 @st.cache_data(ttl=3600)
 def load_teams_by_group() -> dict[str, list[dict]]:
     """Return {group_letter: [{name, flag_emoji, id}, ...]} ordered by seed position."""
-    from src.db import get_admin_client
     result = (
         get_admin_client()
         .table("seed_teams")
@@ -30,16 +36,13 @@ def load_teams_by_group() -> dict[str, list[dict]]:
 # ── Lock state ────────────────────────────────────────────────────────────────
 
 def is_locked(category: str) -> bool:
-    """Return True if the given lock category is active."""
-    from src.db import get_admin_client
-    result = (
-        get_admin_client()
-        .table("lock_state")
-        .select("is_locked")
-        .eq("category", category)
-        .execute()
-    )
-    return bool(result.data and result.data[0]["is_locked"])
+    """Return True if the given lock category is active.
+
+    Reads through the single cached lock-state source so every caller —
+    user pages and admin alike — sees the same value. The cache is cleared
+    whenever a lock is toggled, so there's no staleness window.
+    """
+    return bool(load_lock_state().get(category, False))
 
 
 # ── Group stage predictions ───────────────────────────────────────────────────
@@ -47,7 +50,6 @@ def is_locked(category: str) -> bool:
 @st.cache_data(ttl=10)
 def load_group_predictions(user_id: str) -> dict[str, dict]:
     """Return {group_letter: {predicted_ranking, third_place_advances}} for this user."""
-    from src.db import get_admin_client
     result = (
         get_admin_client()
         .table("predictions_group_stage")
@@ -60,11 +62,12 @@ def load_group_predictions(user_id: str) -> dict[str, dict]:
 
 def save_group_predictions(user_id: str, rows: list[dict]) -> None:
     """Upsert all group prediction rows, then invalidate the read cache."""
-    from src.db import get_admin_client
     get_admin_client().table("predictions_group_stage").upsert(
         rows, on_conflict="user_id,group_letter"
     ).execute()
     load_group_predictions.clear()
+    recalculate_user_score(user_id)
+    load_leaderboard.clear()
 
 
 # ── Champion pick ─────────────────────────────────────────────────────────────
@@ -72,7 +75,6 @@ def save_group_predictions(user_id: str, rows: list[dict]) -> None:
 @st.cache_data(ttl=10)
 def load_champion_pick(user_id: str) -> dict | None:
     """Return {champion, dark_horse} for this user, or None if not yet saved."""
-    from src.db import get_admin_client
     result = (
         get_admin_client()
         .table("predictions_champion")
@@ -84,9 +86,12 @@ def load_champion_pick(user_id: str) -> dict | None:
 
 
 def save_champion_pick(user_id: str, champion: str, dark_horse: str | None) -> None:
-    """Upsert the champion pick row, then invalidate the read cache."""
-    from datetime import datetime, timezone
-    from src.db import get_admin_client
+    """Validate and upsert the champion pick row, then invalidate the read cache.
+
+    Constructing ChampionPick enforces the model rules (e.g. dark horse must differ
+    from the champion) at the data boundary, not just in the UI.
+    """
+    ChampionPick(champion=champion, dark_horse=dark_horse)  # raises ValueError if invalid
     get_admin_client().table("predictions_champion").upsert(
         {
             "user_id": user_id,
@@ -97,6 +102,8 @@ def save_champion_pick(user_id: str, champion: str, dark_horse: str | None) -> N
         on_conflict="user_id",
     ).execute()
     load_champion_pick.clear()
+    recalculate_user_score(user_id)
+    load_leaderboard.clear()
 
 
 # ── Golden boot draft ─────────────────────────────────────────────────────────
@@ -104,7 +111,6 @@ def save_champion_pick(user_id: str, champion: str, dark_horse: str | None) -> N
 @st.cache_data(ttl=3600)
 def load_players_by_tier() -> dict[int, list[dict]]:
     """Return {tier: [{id, name, team_name, tier, cost}, ...]} ordered by cost desc."""
-    from src.db import get_admin_client
     result = (
         get_admin_client()
         .table("seed_players")
@@ -121,7 +127,6 @@ def load_players_by_tier() -> dict[int, list[dict]]:
 @st.cache_data(ttl=10)
 def load_golden_boot_picks(user_id: str) -> set[int]:
     """Return the set of player IDs the user has drafted."""
-    from src.db import get_admin_client
     result = (
         get_admin_client()
         .table("predictions_golden_boot")
@@ -134,7 +139,6 @@ def load_golden_boot_picks(user_id: str) -> set[int]:
 
 def save_golden_boot_picks(user_id: str, player_ids: list[int]) -> None:
     """Replace all golden boot picks for this user, then invalidate the cache."""
-    from src.db import get_admin_client
     client = get_admin_client()
     client.table("predictions_golden_boot").delete().eq("user_id", user_id).execute()
     if player_ids:
@@ -142,14 +146,15 @@ def save_golden_boot_picks(user_id: str, player_ids: list[int]) -> None:
             [{"user_id": user_id, "player_id": pid} for pid in player_ids]
         ).execute()
     load_golden_boot_picks.clear()
+    recalculate_user_score(user_id)
+    load_leaderboard.clear()
 
 
 # ── Bonus questions ───────────────────────────────────────────────────────────
 
 @st.cache_data(ttl=3600)
 def load_bonus_questions() -> list[dict]:
-    """Return [{id, question_text, valid_options, point_value}, ...] ordered by id."""
-    from src.db import get_admin_client
+    """Return [{id, question_text, valid_options, point_value, correct_options}, ...] ordered by id."""
     result = (
         get_admin_client()
         .table("bonus_question_defs")
@@ -163,7 +168,6 @@ def load_bonus_questions() -> list[dict]:
 @st.cache_data(ttl=10)
 def load_bonus_answers(user_id: str) -> dict[int, str]:
     """Return {question_id: chosen_option} for this user."""
-    from src.db import get_admin_client
     result = (
         get_admin_client()
         .table("predictions_bonus")
@@ -179,7 +183,6 @@ def load_bonus_answers(user_id: str) -> dict[int, str]:
 @st.cache_data(ttl=60)
 def load_bracket_matchups() -> dict[str, list[dict]]:
     """Return {round: [matchup_dicts ordered by slot]} for all rounds with matchups."""
-    from src.db import get_admin_client
     result = (
         get_admin_client()
         .table("real_bracket")
@@ -197,7 +200,6 @@ def load_bracket_matchups() -> dict[str, list[dict]]:
 @st.cache_data(ttl=10)
 def load_bracket_picks(user_id: str) -> dict[int, str]:
     """Return {matchup_id: predicted_winner} for this user."""
-    from src.db import get_admin_client
     result = (
         get_admin_client()
         .table("predictions_bracket")
@@ -210,8 +212,6 @@ def load_bracket_picks(user_id: str) -> dict[int, str]:
 
 def save_bracket_picks(user_id: str, picks: dict[int, str]) -> None:
     """Upsert bracket picks for this user. picks = {matchup_id: predicted_winner}."""
-    from datetime import datetime, timezone
-    from src.db import get_admin_client
     now = datetime.now(timezone.utc).isoformat()
     rows = [
         {"user_id": user_id, "matchup_id": mid, "predicted_winner": winner, "updated_at": now}
@@ -221,12 +221,12 @@ def save_bracket_picks(user_id: str, picks: dict[int, str]) -> None:
         rows, on_conflict="user_id,matchup_id"
     ).execute()
     load_bracket_picks.clear()
+    recalculate_user_score(user_id)
+    load_leaderboard.clear()
 
 
 def save_bonus_answers(user_id: str, answers: dict[int, str]) -> None:
     """Upsert all bonus answers for this user, then invalidate the cache."""
-    from datetime import datetime, timezone
-    from src.db import get_admin_client
     now = datetime.now(timezone.utc).isoformat()
     rows = [
         {"user_id": user_id, "question_id": qid, "chosen_option": option, "updated_at": now}
@@ -236,42 +236,39 @@ def save_bonus_answers(user_id: str, answers: dict[int, str]) -> None:
         rows, on_conflict="user_id,question_id"
     ).execute()
     load_bonus_answers.clear()
+    recalculate_user_score(user_id)
+    load_leaderboard.clear()
 
 
 # ── Leaderboard ────────────────────────────────────────────────────────────────
 
-@st.cache_data(ttl=60)
-def load_leaderboard() -> list[dict]:
-    """Return leaderboard rows, sorted by total_pts desc then display_name asc.
+def _embedded_profile(raw: dict) -> dict:
+    """Normalize the embedded profiles resource (Supabase may return dict or list)."""
+    prof = raw.get("profiles") or {}
+    if isinstance(prof, list):
+        prof = prof[0] if prof else {}
+    return prof
 
-    Each row: rank, user_id, display_name, email, total_pts, group_stage_pts,
-    bracket_pts, champion_pts, golden_boot_pts, bonus_pts.
-    Tied users share the same rank number.
+
+def _assemble_leaderboard(raw_rows: list[dict]) -> list[dict]:
+    """Pure transform: raw score rows (with embedded profile) → ranked leaderboard.
+
+    Sorted by total_pts desc then display_name asc; tied totals share a rank.
+    Kept free of any DB/Streamlit calls so it can be unit-tested directly.
     """
-    from src.db import get_admin_client
-    result = (
-        get_admin_client()
-        .table("scores")
-        .select(
-            "user_id, total_pts, group_stage_pts, bracket_pts, "
-            "champion_pts, golden_boot_pts, bonus_pts, "
-            "profiles(display_name, email)"
-        )
-        .execute()
-    )
     rows = []
-    for r in result.data:
-        profile = r.get("profiles") or {}
+    for r in raw_rows:
+        profile = _embedded_profile(r)
         rows.append({
             "user_id": r["user_id"],
             "display_name": profile.get("display_name") or "",
             "email": profile.get("email") or "",
-            "total_pts": r["total_pts"] or 0,
-            "group_stage_pts": r["group_stage_pts"] or 0,
-            "bracket_pts": r["bracket_pts"] or 0,
-            "champion_pts": r["champion_pts"] or 0,
-            "golden_boot_pts": r["golden_boot_pts"] or 0,
-            "bonus_pts": r["bonus_pts"] or 0,
+            "total_pts": r.get("total_pts") or 0,
+            "group_stage_pts": r.get("group_stage_pts") or 0,
+            "bracket_pts": r.get("bracket_pts") or 0,
+            "champion_pts": r.get("champion_pts") or 0,
+            "golden_boot_pts": r.get("golden_boot_pts") or 0,
+            "bonus_pts": r.get("bonus_pts") or 0,
         })
     rows.sort(key=lambda r: (-r["total_pts"], r["display_name"].lower()))
     prev_total: int | None = None
@@ -282,3 +279,24 @@ def load_leaderboard() -> list[dict]:
             prev_total = row["total_pts"]
         row["rank"] = rank
     return rows
+
+
+@st.cache_data(ttl=60)
+def load_leaderboard() -> list[dict]:
+    """Return leaderboard rows, sorted by total_pts desc then display_name asc.
+
+    Each row: rank, user_id, display_name, email, total_pts, group_stage_pts,
+    bracket_pts, champion_pts, golden_boot_pts, bonus_pts.
+    Tied users share the same rank number.
+    """
+    result = (
+        get_admin_client()
+        .table("scores")
+        .select(
+            "user_id, total_pts, group_stage_pts, bracket_pts, "
+            "champion_pts, golden_boot_pts, bonus_pts, "
+            "profiles(display_name, email)"
+        )
+        .execute()
+    )
+    return _assemble_leaderboard(result.data)

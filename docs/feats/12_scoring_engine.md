@@ -13,7 +13,7 @@ The heart of the app: take a user's predictions and the actual results and produ
   - **Group stage:** correct qualifier, correct exact position, correct third-place advancer.
   - **Knockout:** exact per-match winner, weighted per round (R32=1, R16=2, QF=3, SF=5, Final=8).
   - **Champion pick:** large fixed reward if correct (+ dark-horse bonus).
-  - **Golden boot:** points per goal by drafted players.
+  - **Golden boot:** flat 7 pts if any drafted player wins the Golden Boot (finishes as joint or sole top scorer). See `scoring_rules.md`.
   - **Bonus:** 2 pts each; **tie-aware** — any of the admin-marked correct options counts.
 - **Partial data:** only score categories/rounds for which results exist; absent results contribute 0, not errors.
 - **Idempotency:** running scoring twice on the same inputs yields identical output.

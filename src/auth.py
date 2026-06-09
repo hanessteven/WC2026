@@ -12,6 +12,7 @@ import streamlit as st
 from itsdangerous import URLSafeTimedSerializer
 
 from src.config import get_admin_emails, get_cookie_secret
+from src.db import get_admin_client
 
 COOKIE_NAME = "wc2026_session"
 COOKIE_MAX_AGE = 60 * 60 * 24 * 30  # 30 days, in seconds
@@ -21,7 +22,6 @@ COOKIE_MAX_AGE = 60 * 60 * 24 * 30  # 30 days, in seconds
 
 def check_whitelist(email: str) -> bool:
     """Return True if the email is in the allowed_emails table."""
-    from src.db import get_admin_client
     result = (
         get_admin_client()
         .table("allowed_emails")
@@ -34,7 +34,6 @@ def check_whitelist(email: str) -> bool:
 
 def _get_profile_by_email(email: str) -> dict | None:
     """Fetch a full profile row (incl. password_hash) by email. None if absent."""
-    from src.db import get_admin_client
     result = (
         get_admin_client()
         .table("profiles")
@@ -47,7 +46,6 @@ def _get_profile_by_email(email: str) -> dict | None:
 
 def get_profile(user_id: str) -> dict | None:
     """Fetch the public profile row for a user (no password_hash). None if absent."""
-    from src.db import get_admin_client
     result = (
         get_admin_client()
         .table("profiles")
@@ -60,7 +58,6 @@ def get_profile(user_id: str) -> dict | None:
 
 def set_display_name(user_id: str, display_name: str) -> None:
     """Update the display_name on a user's profile row."""
-    from src.db import get_admin_client
     get_admin_client().table("profiles").update(
         {"display_name": display_name.strip()}
     ).eq("id", user_id).execute()
@@ -85,7 +82,6 @@ def register(email: str, password: str, display_name: str) -> dict:
 
     pw_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
-    from src.db import get_admin_client
     client = get_admin_client()
     if existing:  # claim the legacy row
         client.table("profiles").update(
