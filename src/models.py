@@ -38,6 +38,7 @@ class SeedTeam(BaseModel):
     name: str
     group_letter: str
     flag_emoji: str | None = None
+    is_dark_horse_eligible: bool = True
 
 
 class SeedPlayer(BaseModel):

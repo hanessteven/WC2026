@@ -17,7 +17,7 @@ def load_teams_by_group() -> dict[str, list[dict]]:
     result = (
         get_admin_client()
         .table("seed_teams")
-        .select("id, name, group_letter, flag_emoji")
+        .select("id, name, group_letter, flag_emoji, is_dark_horse_eligible")
         .order("id")
         .execute()
     )
