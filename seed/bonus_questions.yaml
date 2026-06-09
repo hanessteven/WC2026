@@ -8,7 +8,6 @@ questions:
       - "United States"
       - "Mexico"
       - "Canada"
-      - "Tie"
     point_value: 2
 
   - question_text: "How many Round of 32 matches will be decided by penalties?"
@@ -27,7 +26,6 @@ questions:
       - "CAF"
       - "AFC"
       - "OFC"
-      - "Tie"
     point_value: 2
 
   - question_text: "Which group will have the highest total goals scored?"
@@ -44,7 +42,6 @@ questions:
       - "Group J"
       - "Group K"
       - "Group L"
-      - "Tie"
     point_value: 2
 
   - question_text: "Will there be a red card in the Final?"
