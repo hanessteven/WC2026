@@ -97,3 +97,48 @@ def save_champion_pick(user_id: str, champion: str, dark_horse: str | None) -> N
         on_conflict="user_id",
     ).execute()
     load_champion_pick.clear()
+
+
+# ── Golden boot draft ─────────────────────────────────────────────────────────
+
+@st.cache_data(ttl=3600)
+def load_players_by_tier() -> dict[int, list[dict]]:
+    """Return {tier: [{id, name, team_name, tier, cost}, ...]} ordered by cost desc."""
+    from src.db import get_admin_client
+    result = (
+        get_admin_client()
+        .table("seed_players")
+        .select("id, name, team_name, tier, cost")
+        .order("cost", desc=True)
+        .execute()
+    )
+    tiers: dict[int, list[dict]] = {}
+    for row in result.data:
+        tiers.setdefault(row["tier"], []).append(row)
+    return tiers
+
+
+@st.cache_data(ttl=10)
+def load_golden_boot_picks(user_id: str) -> set[int]:
+    """Return the set of player IDs the user has drafted."""
+    from src.db import get_admin_client
+    result = (
+        get_admin_client()
+        .table("predictions_golden_boot")
+        .select("player_id")
+        .eq("user_id", user_id)
+        .execute()
+    )
+    return {row["player_id"] for row in result.data}
+
+
+def save_golden_boot_picks(user_id: str, player_ids: list[int]) -> None:
+    """Replace all golden boot picks for this user, then invalidate the cache."""
+    from src.db import get_admin_client
+    client = get_admin_client()
+    client.table("predictions_golden_boot").delete().eq("user_id", user_id).execute()
+    if player_ids:
+        client.table("predictions_golden_boot").insert(
+            [{"user_id": user_id, "player_id": pid} for pid in player_ids]
+        ).execute()
+    load_golden_boot_picks.clear()

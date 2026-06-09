@@ -12,8 +12,9 @@ from pydantic import BaseModel, field_validator, model_validator
 
 # Configurable scoring constants — change here to affect the entire scoring engine.
 GOLDEN_BOOT_BUDGET: int = 100
+GOLDEN_BOOT_WINNER_PTS: int = 7   # awarded if any drafted player wins the Golden Boot
 CHAMPION_PTS: int = 13
-DARK_HORSE_PTS: int = 3        # awarded if the dark-horse pick reaches QF or further
+DARK_HORSE_PTS: int = 3           # awarded if the dark-horse pick reaches QF or further
 
 
 class Round(str, Enum):

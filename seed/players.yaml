@@ -1,66 +1,139 @@
 # Golden Boot Salary-Cap Draft — Player List
 # Total budget per user: $100
-# Tiers: 1 = most expensive, 4 = value picks
-# Edit costs before running the loader to rebalance as desired.
+# Scoring: 7 pts if any drafted player wins the Golden Boot (top scorer).
+#
+# Pricing intent:
+#   Tier 1 ($45–65): One of these consumes most of your budget. Can't stack them.
+#   Tier 2 ($16–35): Strong contenders — pair with cheap fills or one other Tier 2.
+#   Tier 3 ($7–13):  Mid-range value — 2–3 of these fill out a balanced roster.
+#   Tier 4 ($3–6):   Sleeper picks — cheap coverage on long shots.
+#
+# Every country has at least 1 representative.
+# Admin: adjust costs or add players here, then re-run load_seed.py.
 
 players:
-  # ── Tier 1 ($22–30): Tournament favourites ─────────────────────────────────
+
+  # ── Tier 1 ($45–65): Tournament favourites ─────────────────────────────────
+  # Mbappé ($65) + Gyökeres ($45) = $110 — over budget, forces a real choice.
+
   - name: "Kylian Mbappé"
     team_name: "France"
     tier: 1
-    cost: 30
+    cost: 65
 
   - name: "Harry Kane"
     team_name: "England"
     tier: 1
-    cost: 28
+    cost: 55
 
   - name: "Erling Haaland"
     team_name: "Norway"
     tier: 1
-    cost: 25
+    cost: 50
+
+  - name: "Viktor Gyökeres"
+    team_name: "Sweden"
+    tier: 1
+    cost: 45
+
+  # ── Tier 2 ($16–35): Strong contenders ─────────────────────────────────────
 
   - name: "Lionel Messi"
     team_name: "Argentina"
-    tier: 1
-    cost: 22
+    tier: 2
+    cost: 35
 
-  # ── Tier 2 ($14–18): Strong contenders ────────────────────────────────────
+  - name: "Mohamed Salah"
+    team_name: "Egypt"
+    tier: 2
+    cost: 35
+
   - name: "Vinicius Jr"
     team_name: "Brazil"
     tier: 2
-    cost: 18
+    cost: 28
+
+  - name: "Alexander Isak"
+    team_name: "Sweden"
+    tier: 2
+    cost: 28
 
   - name: "Lamine Yamal"
     team_name: "Spain"
     tier: 2
-    cost: 17
+    cost: 25
+
+  - name: "Jonathan David"
+    team_name: "Canada"
+    tier: 2
+    cost: 25
 
   - name: "Jude Bellingham"
     team_name: "England"
     tier: 2
-    cost: 16
+    cost: 22
+
+  - name: "Lautaro Martínez"
+    team_name: "Argentina"
+    tier: 2
+    cost: 22
 
   - name: "Cristiano Ronaldo"
     team_name: "Portugal"
     tier: 2
-    cost: 15
+    cost: 20
+
+  - name: "Julián Álvarez"
+    team_name: "Argentina"
+    tier: 2
+    cost: 18
 
   - name: "Mikel Oyarzabal"
     team_name: "Spain"
     tier: 2
-    cost: 14
+    cost: 18
+
+  - name: "Cody Gakpo"
+    team_name: "Netherlands"
+    tier: 2
+    cost: 18
 
   - name: "Memphis Depay"
     team_name: "Netherlands"
     tier: 2
-    cost: 14
+    cost: 16
 
-  # ── Tier 3 ($8–12): Mid-range value ───────────────────────────────────────
+  - name: "Florian Wirtz"
+    team_name: "Germany"
+    tier: 2
+    cost: 16
+
+  # ── Tier 3 ($7–13): Mid-range value ────────────────────────────────────────
+
   - name: "Antoine Griezmann"
     team_name: "France"
     tier: 3
+    cost: 13
+
+  - name: "Kai Havertz"
+    team_name: "Germany"
+    tier: 3
+    cost: 13
+
+  - name: "Luis Díaz"
+    team_name: "Colombia"
+    tier: 3
     cost: 12
+
+  - name: "Gonçalo Ramos"
+    team_name: "Portugal"
+    tier: 3
+    cost: 11
+
+  - name: "Romelu Lukaku"
+    team_name: "Belgium"
+    tier: 3
+    cost: 11
 
   - name: "Raphinha"
     team_name: "Brazil"
@@ -69,6 +142,16 @@ players:
 
   - name: "Phil Foden"
     team_name: "England"
+    tier: 3
+    cost: 11
+
+  - name: "Son Heung-min"
+    team_name: "South Korea"
+    tier: 3
+    cost: 10
+
+  - name: "Santiago Giménez"
+    team_name: "Mexico"
     tier: 3
     cost: 10
 
@@ -82,6 +165,36 @@ players:
     tier: 3
     cost: 10
 
+  - name: "Rafael Leão"
+    team_name: "Portugal"
+    tier: 3
+    cost: 9
+
+  - name: "Omar Marmoush"
+    team_name: "Egypt"
+    tier: 3
+    cost: 9
+
+  - name: "Amad Diallo"
+    team_name: "Ivory Coast"
+    tier: 3
+    cost: 9
+
+  - name: "Sadio Mané"
+    team_name: "Senegal"
+    tier: 3
+    cost: 9
+
+  - name: "Arda Güler"
+    team_name: "Türkiye"
+    tier: 3
+    cost: 9
+
+  - name: "Andrej Kramarić"
+    team_name: "Croatia"
+    tier: 3
+    cost: 9
+
   - name: "Pedro"
     team_name: "Brazil"
     tier: 3
@@ -91,6 +204,31 @@ players:
     team_name: "Uruguay"
     tier: 3
     cost: 9
+
+  - name: "Patrik Schick"
+    team_name: "Czechia"
+    tier: 3
+    cost: 8
+
+  - name: "Riyad Mahrez"
+    team_name: "Algeria"
+    tier: 3
+    cost: 8
+
+  - name: "Jeremy Doku"
+    team_name: "Belgium"
+    tier: 3
+    cost: 8
+
+  - name: "Takefusa Kubo"
+    team_name: "Japan"
+    tier: 3
+    cost: 8
+
+  - name: "Ayoub El Kaabi"
+    team_name: "Morocco"
+    tier: 3
+    cost: 8
 
   - name: "Bukayo Saka"
     team_name: "England"
@@ -102,7 +240,13 @@ players:
     tier: 3
     cost: 8
 
-  # ── Tier 4 ($3–6): Sleeper picks ──────────────────────────────────────────
+  - name: "Kenan Yıldız"
+    team_name: "Türkiye"
+    tier: 3
+    cost: 7
+
+  # ── Tier 4 ($3–6): Sleeper picks ───────────────────────────────────────────
+
   - name: "Hirving Lozano"
     team_name: "Mexico"
     tier: 4
@@ -110,6 +254,31 @@ players:
 
   - name: "Federico Valverde"
     team_name: "Uruguay"
+    tier: 4
+    cost: 6
+
+  - name: "Yoane Wissa"
+    team_name: "Congo DR"
+    tier: 4
+    cost: 6
+
+  - name: "Ermedin Demirović"
+    team_name: "Bosnia-Herzegovina"
+    tier: 4
+    cost: 6
+
+  - name: "Cyle Larin"
+    team_name: "Canada"
+    tier: 4
+    cost: 6
+
+  - name: "Mohamed Amine Amoura"
+    team_name: "Algeria"
+    tier: 4
+    cost: 6
+
+  - name: "Simon Adingra"
+    team_name: "Ivory Coast"
     tier: 4
     cost: 6
 
@@ -123,6 +292,121 @@ players:
     tier: 4
     cost: 5
 
+  - name: "Ismaïla Sarr"
+    team_name: "Senegal"
+    tier: 4
+    cost: 5
+
+  - name: "Breel Embolo"
+    team_name: "Switzerland"
+    tier: 4
+    cost: 5
+
+  - name: "Enner Valencia"
+    team_name: "Ecuador"
+    tier: 4
+    cost: 5
+
+  - name: "Mehdi Taremi"
+    team_name: "Iran"
+    tier: 4
+    cost: 5
+
+  - name: "Ayase Ueda"
+    team_name: "Japan"
+    tier: 4
+    cost: 5
+
+  - name: "Firas Al-Buraikan"
+    team_name: "Saudi Arabia"
+    tier: 4
+    cost: 5
+
+  - name: "Lawrence Shankland"
+    team_name: "Scotland"
+    tier: 4
+    cost: 5
+
+  - name: "Antonio Sanabria"
+    team_name: "Paraguay"
+    tier: 4
+    cost: 5
+
+  - name: "Chris Wood"
+    team_name: "New Zealand"
+    tier: 4
+    cost: 5
+
+  - name: "Eldor Shomurodov"
+    team_name: "Uzbekistan"
+    tier: 4
+    cost: 5
+
+  - name: "Antoine Semenyo"
+    team_name: "Ghana"
+    tier: 4
+    cost: 5
+
+  - name: "Raúl Jiménez"
+    team_name: "Mexico"
+    tier: 4
+    cost: 5
+
+  - name: "Marko Arnautović"
+    team_name: "Austria"
+    tier: 4
+    cost: 5
+
+  - name: "Awer Mabil"
+    team_name: "Australia"
+    tier: 4
+    cost: 4
+
+  - name: "Evidence Makgopa"
+    team_name: "South Africa"
+    tier: 4
+    cost: 4
+
+  - name: "Akram Afif"
+    team_name: "Qatar"
+    tier: 4
+    cost: 4
+
+  - name: "Gue-Sung Cho"
+    team_name: "South Korea"
+    tier: 4
+    cost: 4
+
+  - name: "Ali Al-Hamadi"
+    team_name: "Iraq"
+    tier: 4
+    cost: 4
+
+  - name: "Mousa Al-Taamari"
+    team_name: "Jordan"
+    tier: 4
+    cost: 4
+
+  - name: "Issam Jebali"
+    team_name: "Tunisia"
+    tier: 4
+    cost: 4
+
+  - name: "Dailon Livramento"
+    team_name: "Cape Verde"
+    tier: 4
+    cost: 4
+
+  - name: "Cédric Bakambu"
+    team_name: "Congo DR"
+    tier: 4
+    cost: 4
+
+  - name: "Jhon Córdoba"
+    team_name: "Colombia"
+    tier: 4
+    cost: 4
+
   - name: "Sofiane Boufal"
     team_name: "Morocco"
     tier: 4
@@ -135,5 +419,20 @@ players:
 
   - name: "Richie Laryea"
     team_name: "Canada"
+    tier: 4
+    cost: 3
+
+  - name: "Duckens Nazon"
+    team_name: "Haiti"
+    tier: 4
+    cost: 3
+
+  - name: "José Fajardo"
+    team_name: "Panama"
+    tier: 4
+    cost: 3
+
+  - name: "Sontje Hansen"
+    team_name: "Curacao"
     tier: 4
     cost: 3

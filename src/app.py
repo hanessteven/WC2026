@@ -24,6 +24,7 @@ pages = [
     st.Page("pages/1_🏠_Home.py", title="Home", icon="🏠"),
     st.Page("pages/2_🏆_Group_Stage.py", title="Group Stage", icon="🏆"),
     st.Page("pages/3_⭐_Champion_Pick.py", title="Champion Pick", icon="⭐"),
+    st.Page("pages/4_⚽_Golden_Boot.py", title="Golden Boot Draft", icon="⚽"),
 ]
 if is_admin(user):
     pages.append(st.Page("pages/99_🔧_Admin.py", title="Admin Panel", icon="🔧"))

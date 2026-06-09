@@ -31,7 +31,7 @@ Made before kickoff, locked at tournament start — separate from the in-bracket
 ## Draft & Bonuses
 | Category | Points |
 | :--- | :--- |
-| Golden Boot (per goal by a drafted player) | 1 |
+| Golden Boot (drafted player wins the Golden Boot — top scorer) | 7 |
 | Bonus Question Correct | 2 |
 
 ## Calculation Strategy
