@@ -240,6 +240,37 @@ def save_bonus_answers(user_id: str, answers: dict[int, str]) -> None:
     load_leaderboard.clear()
 
 
+# ── Social / bulk prediction views (all users, login-gated in UI) ─────────────
+
+@st.cache_data(ttl=60)
+def load_all_champion_picks() -> list[dict]:
+    """Return [{user_id, champion, dark_horse}] for every user who has made a pick."""
+    return get_admin_client().table("predictions_champion").select("user_id, champion, dark_horse").execute().data
+
+
+@st.cache_data(ttl=60)
+def load_all_bonus_answers() -> list[dict]:
+    """Return [{user_id, question_id, chosen_option}] for all saved bonus answers."""
+    return get_admin_client().table("predictions_bonus").select("user_id, question_id, chosen_option").execute().data
+
+
+@st.cache_data(ttl=60)
+def load_all_golden_boot_picks() -> list[dict]:
+    """Return [{user_id, player_id, player_name}] for all drafted players."""
+    picks = get_admin_client().table("predictions_golden_boot").select("user_id, player_id").execute().data
+    if not picks:
+        return []
+    pids = list({p["player_id"] for p in picks})
+    names = {
+        r["id"]: r["name"]
+        for r in get_admin_client().table("seed_players").select("id, name").in_("id", pids).execute().data
+    }
+    return [
+        {"user_id": p["user_id"], "player_id": p["player_id"], "player_name": names.get(p["player_id"], "?")}
+        for p in picks
+    ]
+
+
 # ── Leaderboard ────────────────────────────────────────────────────────────────
 
 def _embedded_profile(raw: dict) -> dict:
