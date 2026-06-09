@@ -285,18 +285,34 @@ def _assemble_leaderboard(raw_rows: list[dict]) -> list[dict]:
 def load_leaderboard() -> list[dict]:
     """Return leaderboard rows, sorted by total_pts desc then display_name asc.
 
+    Every registered user appears, even before any results exist (zeros until scored).
     Each row: rank, user_id, display_name, email, total_pts, group_stage_pts,
     bracket_pts, champion_pts, golden_boot_pts, bonus_pts.
     Tied users share the same rank number.
     """
-    result = (
-        get_admin_client()
-        .table("scores")
-        .select(
+    client = get_admin_client()
+    profiles = {
+        r["id"]: r
+        for r in client.table("profiles").select("id, display_name, email").execute().data
+    }
+    scores = {
+        r["user_id"]: r
+        for r in client.table("scores").select(
             "user_id, total_pts, group_stage_pts, bracket_pts, "
-            "champion_pts, golden_boot_pts, bonus_pts, "
-            "profiles(display_name, email)"
-        )
-        .execute()
-    )
-    return _assemble_leaderboard(result.data)
+            "champion_pts, golden_boot_pts, bonus_pts"
+        ).execute().data
+    }
+    raw_rows = [
+        {
+            "user_id": uid,
+            "total_pts": scores.get(uid, {}).get("total_pts") or 0,
+            "group_stage_pts": scores.get(uid, {}).get("group_stage_pts") or 0,
+            "bracket_pts": scores.get(uid, {}).get("bracket_pts") or 0,
+            "champion_pts": scores.get(uid, {}).get("champion_pts") or 0,
+            "golden_boot_pts": scores.get(uid, {}).get("golden_boot_pts") or 0,
+            "bonus_pts": scores.get(uid, {}).get("bonus_pts") or 0,
+            "profiles": profile,
+        }
+        for uid, profile in profiles.items()
+    ]
+    return _assemble_leaderboard(raw_rows)
