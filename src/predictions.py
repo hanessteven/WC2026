@@ -174,6 +174,55 @@ def load_bonus_answers(user_id: str) -> dict[int, str]:
     return {row["question_id"]: row["chosen_option"] for row in result.data}
 
 
+# ── Knockout bracket ──────────────────────────────────────────────────────────
+
+@st.cache_data(ttl=60)
+def load_bracket_matchups() -> dict[str, list[dict]]:
+    """Return {round: [matchup_dicts ordered by slot]} for all rounds with matchups."""
+    from src.db import get_admin_client
+    result = (
+        get_admin_client()
+        .table("real_bracket")
+        .select("id, round, slot, team_a, team_b, winner, is_penalty")
+        .order("round")
+        .order("slot")
+        .execute()
+    )
+    rounds: dict[str, list[dict]] = {}
+    for row in result.data:
+        rounds.setdefault(row["round"], []).append(row)
+    return rounds
+
+
+@st.cache_data(ttl=10)
+def load_bracket_picks(user_id: str) -> dict[int, str]:
+    """Return {matchup_id: predicted_winner} for this user."""
+    from src.db import get_admin_client
+    result = (
+        get_admin_client()
+        .table("predictions_bracket")
+        .select("matchup_id, predicted_winner")
+        .eq("user_id", user_id)
+        .execute()
+    )
+    return {row["matchup_id"]: row["predicted_winner"] for row in result.data}
+
+
+def save_bracket_picks(user_id: str, picks: dict[int, str]) -> None:
+    """Upsert bracket picks for this user. picks = {matchup_id: predicted_winner}."""
+    from datetime import datetime, timezone
+    from src.db import get_admin_client
+    now = datetime.now(timezone.utc).isoformat()
+    rows = [
+        {"user_id": user_id, "matchup_id": mid, "predicted_winner": winner, "updated_at": now}
+        for mid, winner in picks.items()
+    ]
+    get_admin_client().table("predictions_bracket").upsert(
+        rows, on_conflict="user_id,matchup_id"
+    ).execute()
+    load_bracket_picks.clear()
+
+
 def save_bonus_answers(user_id: str, answers: dict[int, str]) -> None:
     """Upsert all bonus answers for this user, then invalidate the cache."""
     from datetime import datetime, timezone
@@ -187,3 +236,49 @@ def save_bonus_answers(user_id: str, answers: dict[int, str]) -> None:
         rows, on_conflict="user_id,question_id"
     ).execute()
     load_bonus_answers.clear()
+
+
+# ── Leaderboard ────────────────────────────────────────────────────────────────
+
+@st.cache_data(ttl=60)
+def load_leaderboard() -> list[dict]:
+    """Return leaderboard rows, sorted by total_pts desc then display_name asc.
+
+    Each row: rank, user_id, display_name, email, total_pts, group_stage_pts,
+    bracket_pts, champion_pts, golden_boot_pts, bonus_pts.
+    Tied users share the same rank number.
+    """
+    from src.db import get_admin_client
+    result = (
+        get_admin_client()
+        .table("scores")
+        .select(
+            "user_id, total_pts, group_stage_pts, bracket_pts, "
+            "champion_pts, golden_boot_pts, bonus_pts, "
+            "profiles(display_name, email)"
+        )
+        .execute()
+    )
+    rows = []
+    for r in result.data:
+        profile = r.get("profiles") or {}
+        rows.append({
+            "user_id": r["user_id"],
+            "display_name": profile.get("display_name") or "",
+            "email": profile.get("email") or "",
+            "total_pts": r["total_pts"] or 0,
+            "group_stage_pts": r["group_stage_pts"] or 0,
+            "bracket_pts": r["bracket_pts"] or 0,
+            "champion_pts": r["champion_pts"] or 0,
+            "golden_boot_pts": r["golden_boot_pts"] or 0,
+            "bonus_pts": r["bonus_pts"] or 0,
+        })
+    rows.sort(key=lambda r: (-r["total_pts"], r["display_name"].lower()))
+    prev_total: int | None = None
+    rank = 0
+    for i, row in enumerate(rows):
+        if row["total_pts"] != prev_total:
+            rank = i + 1
+            prev_total = row["total_pts"]
+        row["rank"] = rank
+    return rows

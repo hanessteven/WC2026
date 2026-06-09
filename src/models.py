@@ -15,6 +15,10 @@ GOLDEN_BOOT_BUDGET: int = 100
 GOLDEN_BOOT_WINNER_PTS: int = 7   # awarded if any drafted player wins the Golden Boot
 CHAMPION_PTS: int = 13
 DARK_HORSE_PTS: int = 3           # awarded if the dark-horse pick reaches QF or further
+BONUS_QUESTION_PTS: int = 2       # per correct bonus answer
+GROUP_QUALIFIER_PTS: int = 1      # team correctly placed in top 2 (any position)
+GROUP_EXACT_POS_PTS: int = 1      # team in exact predicted position (all 4 slots)
+GROUP_THIRD_PLACE_PTS: int = 2    # correctly predicted this group's 3rd-place team advances
 
 
 class Round(str, Enum):
@@ -185,7 +189,7 @@ class TournamentResults(BaseModel):
     (list supports ties — multiple correct answers).
     """
     group_stage: list[GroupStageResult] = []
-    knockout: list[RealMatchup] = []       # only matchups with winner filled in
+    knockout: list[RealMatchup] = []       # all entered matchups; winner=None until result recorded
     player_goals: list[PlayerGoals] = []
     bonus_correct: dict[int, list[str]] = {}  # question_id -> correct option(s)
 
