@@ -10,8 +10,10 @@ from uuid import UUID
 
 from pydantic import BaseModel, field_validator, model_validator
 
-# Configurable budget for the golden boot salary-cap draft.
+# Configurable scoring constants — change here to affect the entire scoring engine.
 GOLDEN_BOOT_BUDGET: int = 100
+CHAMPION_PTS: int = 13
+DARK_HORSE_PTS: int = 3        # awarded if the dark-horse pick reaches QF or further
 
 
 class Round(str, Enum):
@@ -82,7 +84,7 @@ class GroupStagePrediction(BaseModel):
 class ChampionPick(BaseModel):
     """Upfront champion + optional dark horse, locked at tournament start."""
     champion: str
-    dark_horse: str | None = None  # scores if the team reaches the semifinals
+    dark_horse: str | None = None  # scores if the team reaches the quarterfinals (top 8)
 
 
 class RealMatchup(BaseModel):
