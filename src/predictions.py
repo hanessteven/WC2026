@@ -65,3 +65,35 @@ def save_group_predictions(user_id: str, rows: list[dict]) -> None:
         rows, on_conflict="user_id,group_letter"
     ).execute()
     load_group_predictions.clear()
+
+
+# ── Champion pick ─────────────────────────────────────────────────────────────
+
+@st.cache_data(ttl=10)
+def load_champion_pick(user_id: str) -> dict | None:
+    """Return {champion, dark_horse} for this user, or None if not yet saved."""
+    from src.db import get_admin_client
+    result = (
+        get_admin_client()
+        .table("predictions_champion")
+        .select("champion, dark_horse")
+        .eq("user_id", user_id)
+        .execute()
+    )
+    return result.data[0] if result.data else None
+
+
+def save_champion_pick(user_id: str, champion: str, dark_horse: str | None) -> None:
+    """Upsert the champion pick row, then invalidate the read cache."""
+    from datetime import datetime, timezone
+    from src.db import get_admin_client
+    get_admin_client().table("predictions_champion").upsert(
+        {
+            "user_id": user_id,
+            "champion": champion,
+            "dark_horse": dark_horse,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        },
+        on_conflict="user_id",
+    ).execute()
+    load_champion_pick.clear()

@@ -12,13 +12,12 @@ A single high-value, long-range prediction made **before the tournament starts**
 - Lightweight UI; one selection (+ optional second).
 
 ## Scoring impact (see [../scoring_rules.md](../scoring_rules.md))
-- Correct champion: large fixed reward (TODO: confirm value; suggested 13).
-- Correct dark horse: bonus (TODO: confirm value and what "dark horse correct" means — e.g. reaches semifinal).
+- Correct champion: **13 pts** (Fibonacci step above the 8pt Final bracket pick).
+- Correct dark horse: **3 pts** if the team reaches the **quarterfinals or further** (top 8).
 
 ## Acceptance criteria
-- Pick persists and locks at tournament start.
+- Pick persists and loads pre-filled on return visits.
+- Locked when the `champion` category is locked — shown read-only, no save button.
 - Distinct from the in-bracket Final pick (which is scored separately per round).
-
-## TODO
-- Confirm champion / dark-horse point values.
-- Define the dark-horse success condition.
+- Champion and dark horse cannot be the same team.
+- Dark horse is optional; saving with no dark horse pick is valid.

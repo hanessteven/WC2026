@@ -25,8 +25,8 @@ Made before kickoff, locked at tournament start — separate from the in-bracket
 
 | Pick | Points |
 | :--- | :--- |
-| Correct Champion (upfront) | 13 (TODO: confirm) |
-| Correct Dark Horse | TODO: confirm value + success condition |
+| Correct Champion (upfront) | 13 |
+| Correct Dark Horse (reaches QF or further) | 3 |
 
 ## Draft & Bonuses
 | Category | Points |
