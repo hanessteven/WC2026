@@ -1,13 +1,13 @@
 """
-Authentication — magic-link OTP sign-in with email whitelist.
-Uses Supabase email OTP (6-digit code). No redirect URL needed.
+Authentication — PKCE magic-link sign-in with email whitelist.
+Supabase sends a link with ?token_hash= query param; Streamlit reads it server-side.
 """
 from __future__ import annotations
 
 import streamlit as st
 from supabase import create_client
 
-from src.config import get_admin_emails, get_supabase_key, get_supabase_url
+from src.config import get_admin_emails, get_app_url, get_supabase_key, get_supabase_url
 
 
 def _auth_client():
@@ -31,17 +31,22 @@ def check_whitelist(email: str) -> bool:
     return len(result.data) > 0
 
 
-def send_otp(email: str) -> None:
-    """Send a 6-digit OTP code to the given email via Supabase auth."""
-    _auth_client().auth.sign_in_with_otp({"email": email.strip().lower()})
+def send_magic_link(email: str) -> None:
+    """Send a sign-in link to the given email via Supabase PKCE flow.
+    The link lands back at APP_URL with ?token_hash=... which we read server-side."""
+    _auth_client().auth.sign_in_with_otp({
+        "email": email.strip().lower(),
+        "options": {"email_redirect_to": get_app_url()},
+    })
 
 
-def verify_otp(email: str, token: str) -> dict:
-    """Verify the OTP code. Returns a user dict on success, raises on failure."""
+def verify_token_hash(token_hash: str) -> dict:
+    """Exchange a token_hash (from the magic link query param) for a user session."""
     client = _auth_client()
-    response = client.auth.verify_otp(
-        {"email": email.strip().lower(), "token": token.strip(), "type": "email"}
-    )
+    response = client.auth.verify_otp({
+        "token_hash": token_hash,
+        "type": "email",
+    })
     return {
         "id": str(response.user.id),
         "email": response.user.email,
@@ -89,63 +94,51 @@ def logout() -> None:
         st.session_state.pop(key, None)
 
 
+def handle_magic_link_callback() -> bool:
+    """
+    If ?token_hash= is present in the URL, verify it and store the user in session.
+    Returns True if a callback was handled (caller should st.rerun()).
+    """
+    token_hash = st.query_params.get("token_hash")
+    if not token_hash:
+        return False
+
+    # Clear the token from the URL immediately so it can't be replayed on refresh
+    st.query_params.clear()
+
+    try:
+        user = verify_token_hash(token_hash)
+        st.session_state.user = user
+        st.session_state.profile = get_profile(user["id"])
+    except Exception:
+        st.error("Sign-in link is invalid or expired. Please request a new one.")
+
+    return True
+
+
 # ── Login UI ──────────────────────────────────────────────────────────────────
 
 def show_login_ui() -> None:
-    """Render the 2-step email OTP sign-in form."""
+    """Render the email sign-in form (magic link flow)."""
     st.title("⚽ WC 2026 Predictor")
+    st.subheader("Sign in")
+    st.caption("Enter your email and we'll send you a sign-in link.")
 
-    step = st.session_state.get("auth_step", "email")
+    with st.form("login_email_form"):
+        email = st.text_input("Email address")
+        submitted = st.form_submit_button("Send Sign-in Link", use_container_width=True)
 
-    if step == "email":
-        st.subheader("Sign in")
-        st.caption("Enter your email and we'll send you a 6-digit code.")
-        with st.form("login_email_form"):
-            email = st.text_input("Email address")
-            submitted = st.form_submit_button("Send Code", use_container_width=True)
-
-        if submitted:
-            if not email.strip():
-                st.warning("Please enter your email address.")
-            elif not check_whitelist(email):
-                st.error("Sorry, that email isn't on the guest list for this app.")
-            else:
-                try:
-                    send_otp(email)
-                    st.session_state.auth_step = "otp"
-                    st.session_state.auth_email = email.strip().lower()
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Couldn't send code: {e}")
-
-    elif step == "otp":
-        email = st.session_state.get("auth_email", "")
-        st.subheader("Check your inbox")
-        st.info(f"Code sent to **{email}**. Enter it below — it expires in 10 minutes.")
-
-        with st.form("login_otp_form"):
-            token = st.text_input("6-digit code", max_chars=6, placeholder="123456")
-            submitted = st.form_submit_button("Verify Code", use_container_width=True)
-
-        if submitted:
-            if not token.strip():
-                st.warning("Please enter the code from your email.")
-            else:
-                try:
-                    user = verify_otp(email, token)
-                    st.session_state.user = user
-                    st.session_state.profile = get_profile(user["id"])
-                    # Clear sign-in flow state
-                    st.session_state.pop("auth_step", None)
-                    st.session_state.pop("auth_email", None)
-                    st.rerun()
-                except Exception:
-                    st.error("Invalid or expired code. Please try again.")
-
-        if st.button("Use a different email", use_container_width=True):
-            st.session_state.pop("auth_step", None)
-            st.session_state.pop("auth_email", None)
-            st.rerun()
+    if submitted:
+        if not email.strip():
+            st.warning("Please enter your email address.")
+        elif not check_whitelist(email):
+            st.error("Sorry, that email isn't on the guest list for this app.")
+        else:
+            try:
+                send_magic_link(email)
+                st.success(f"Link sent to **{email.strip()}** — check your inbox and click it to sign in.")
+            except Exception as e:
+                st.error(f"Couldn't send link: {e}")
 
 
 def require_auth() -> dict:
