@@ -48,10 +48,12 @@ def load_group_results() -> dict[str, dict]:
 
 def save_group_results(rows: list[dict]) -> None:
     from src.db import get_admin_client
+    from src.score_runner import recalculate_all_scores
     get_admin_client().table("results_group_stage").upsert(
         rows, on_conflict="group_letter"
     ).execute()
     load_group_results.clear()
+    recalculate_all_scores()
 
 
 # ── Real bracket ───────────────────────────────────────────────────────────────
@@ -85,6 +87,7 @@ def save_match_results(updates: list[dict]) -> None:
     """Update winner + is_penalty for a list of matchups. Each dict: id, winner, is_penalty."""
     from src.db import get_admin_client
     from src.predictions import load_bracket_matchups
+    from src.score_runner import recalculate_all_scores
     client = get_admin_client()
     for upd in updates:
         client.table("real_bracket").update({
@@ -93,6 +96,7 @@ def save_match_results(updates: list[dict]) -> None:
         }).eq("id", upd["id"]).execute()
     load_real_bracket.clear()
     load_bracket_matchups.clear()
+    recalculate_all_scores()
 
 
 # ── Player goals ───────────────────────────────────────────────────────────────
@@ -114,6 +118,7 @@ def save_player_goals(goals: dict[int, int]) -> None:
     """Replace all goal tallies. goals = {player_id: goals_scored}."""
     from datetime import datetime, timezone
     from src.db import get_admin_client
+    from src.score_runner import recalculate_all_scores
     now = datetime.now(timezone.utc).isoformat()
     client = get_admin_client()
     # Wipe existing and re-insert non-zero entries (simpler, single-admin context)
@@ -125,17 +130,20 @@ def save_player_goals(goals: dict[int, int]) -> None:
     if non_zero:
         client.table("results_player_goals").insert(non_zero).execute()
     load_player_goals.clear()
+    recalculate_all_scores()
 
 
 # ── Bonus correct answers ──────────────────────────────────────────────────────
 
 def save_bonus_correct_options(question_id: int, correct_options: list[str] | None) -> None:
     from src.db import get_admin_client
+    from src.predictions import load_bonus_questions
+    from src.score_runner import recalculate_all_scores
     get_admin_client().table("bonus_question_defs").update({
         "correct_options": correct_options or None,
     }).eq("id", question_id).execute()
-    from src.predictions import load_bonus_questions
     load_bonus_questions.clear()
+    recalculate_all_scores()
 
 
 # ── User management ────────────────────────────────────────────────────────────

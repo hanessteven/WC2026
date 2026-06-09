@@ -22,7 +22,7 @@ Build features in numbered order. Each spec is self-contained and lists its depe
 | 09 | [Bonus Questions](09_bonus_questions.md) | 03, 04, 05 | ✅ |
 | 10 | [Admin Panel (Results, Locks, Bracket Progression)](10_admin_panel.md) | 02, 03, 05 | ✅ |
 | 11 | [Wave-Based Knockout Bracket](11_knockout_bracket.md) | 10, 03, 05 | ✅ |
-| 12 | [Scoring Engine](12_scoring_engine.md) | 03, 06–11 | 🔲 |
+| 12 | [Scoring Engine](12_scoring_engine.md) | 03, 06–11 | ✅ |
 | 13 | [Leaderboard & Standings](13_leaderboard.md) | 12 | 🔲 |
 
 ## Dependency notes
