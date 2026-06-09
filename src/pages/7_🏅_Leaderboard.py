@@ -10,6 +10,7 @@ from src.predictions import (
     load_bonus_questions,
     load_champion_pick,
     load_golden_boot_picks,
+    load_group_predictions,
     load_leaderboard,
     load_players_by_tier,
 )
