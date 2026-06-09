@@ -16,7 +16,7 @@ def render_sidebar() -> None:
         st.divider()
 
         if is_admin(user):
-            st.page_link("src/pages/99_🔧_Admin.py", label="Admin Panel", icon="🔧")
+            st.page_link("pages/99_🔧_Admin.py", label="Admin Panel", icon="🔧")
             st.divider()
 
         if st.button("Sign out", use_container_width=True):
