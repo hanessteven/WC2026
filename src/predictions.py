@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 
 import streamlit as st
 
+from src.config import get_leaderboard_exclude_emails
 from src.db import get_admin_client
 from src.locks import load_lock_state
 from src.models import ChampionPick
@@ -322,9 +323,11 @@ def load_leaderboard() -> list[dict]:
     Tied users share the same rank number.
     """
     client = get_admin_client()
+    exclude = get_leaderboard_exclude_emails()
     profiles = {
         r["id"]: r
         for r in client.table("profiles").select("id, display_name, email").execute().data
+        if r.get("email", "").lower() not in exclude
     }
     scores = {
         r["user_id"]: r
