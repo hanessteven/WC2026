@@ -149,7 +149,7 @@ else:
     if st.button("View their picks", type="secondary"):
         st.session_state["_spy_target"] = selected_id
 
-    @st.dialog("Picks")
+    @st.dialog("Picks", width="large")
     def _show_picks(uid: str, display_name: str) -> None:
         st.markdown(f"### {display_name}'s picks")
 
@@ -162,14 +162,29 @@ else:
         else:
             st.caption("No champion pick yet.")
 
+        st.markdown("**🌍 Group Stage**")
+        group_preds = load_group_predictions(uid)
+        if not group_preds:
+            st.caption("No group picks yet.")
+        else:
+            sorted_groups = sorted(group_preds.items())
+            cols = st.columns(4)
+            for i, (letter, pred) in enumerate(sorted_groups):
+                ranking: list[str] = pred.get("predicted_ranking") or []
+                third_advances: bool = pred.get("third_place_advances", False)
+                lines = [f"**{letter}**"]
+                for pos, team in enumerate(ranking, 1):
+                    advances = pos <= 2 or (pos == 3 and third_advances)
+                    lines.append(f"{pos}. {team} \\*" if advances else f"{pos}. {team}")
+                cols[i % 4].markdown("  \n".join(lines))
+
         st.markdown("**⚽ Golden Boot Draft**")
         gb_ids = load_golden_boot_picks(uid)
         if gb_ids:
             all_players = {
-                pid: name
+                p["id"]: p["name"]
                 for tier_players in load_players_by_tier().values()
                 for p in tier_players
-                for pid, name in [(p["id"], p["name"])]
             }
             st.write(", ".join(all_players.get(pid, str(pid)) for pid in sorted(gb_ids)))
         else:
