@@ -17,7 +17,7 @@ A web-based prediction application for the 2026 World Cup, built with Streamlit 
 - [Feature Roadmap & Specs](docs/feats/README.md)
 
 ## Key Decisions (build to these)
-- **Auth:** Supabase magic link, email-whitelisted; admins via `ADMIN_EMAILS`.
+- **Auth:** self-contained email + password (bcrypt), whitelist-gated self-registration, signed-cookie sessions; admins via `ADMIN_EMAILS`. (Magic link was abandoned — Streamlit can't read the URL fragment Supabase returns, and template/OTP customization requires paid SMTP.)
 - **Locking:** admin manual locks, per-category + per-round.
 - **Results entry:** admin page in the app.
 - **Bracket:** wave-based (pick each round from the real matchups the admin enters) + an upfront champion pick locked at tournament start.

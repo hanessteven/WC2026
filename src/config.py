@@ -40,5 +40,5 @@ def get_supabase_service_key() -> str:
     return _require("SUPABASE_SERVICE_KEY")
 
 
-def get_app_url() -> str:
-    return _require("APP_URL").rstrip("/")
+def get_cookie_secret() -> str:
+    return _require("COOKIE_SECRET")
