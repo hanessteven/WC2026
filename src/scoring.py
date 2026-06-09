@@ -7,6 +7,7 @@ Idempotent: identical inputs always produce identical output.
 """
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timezone
 
 from src.models import (
@@ -31,6 +32,8 @@ from src.models import (
     UserPredictions,
 )
 
+logger = logging.getLogger(__name__)
+
 # Points per correct winner, keyed by round.
 ROUND_POINTS: dict[Round, int] = {
     Round.R32: 1,
@@ -39,6 +42,19 @@ ROUND_POINTS: dict[Round, int] = {
     Round.SF: 5,
     Round.F: 8,
 }
+
+
+def _safe(fn, label: str, default: int = 0) -> int:
+    """Run a scorer, returning `default` (and logging) if it raises.
+
+    Keeps one malformed prediction/result from poisoning a user's other
+    categories — absent/edge data must contribute 0, not an error.
+    """
+    try:
+        return fn()
+    except Exception:
+        logger.warning("scoring: %s failed, contributing %d", label, default, exc_info=True)
+        return default
 
 
 # ── Per-category scorers ───────────────────────────────────────────────────────
@@ -78,13 +94,20 @@ def score_group_stage(
     predictions: list[GroupStagePrediction],
     results: list[GroupStageResult],
 ) -> int:
-    """Sum group scores across all groups that have results."""
+    """Sum group scores across all groups that have results.
+
+    Each group is scored in isolation: a malformed prediction for one group
+    contributes 0 without affecting the others.
+    """
     result_map = {r.group_letter: r for r in results}
-    return sum(
-        score_group(pred, result_map[pred.group_letter])
-        for pred in predictions
-        if pred.group_letter in result_map
-    )
+    total = 0
+    for pred in predictions:
+        result = result_map.get(pred.group_letter)
+        if result is None:
+            continue
+        total += _safe(lambda p=pred, r=result: score_group(p, r),
+                       f"group {pred.group_letter}")
+    return total
 
 
 def score_bracket(
@@ -191,11 +214,23 @@ def calculate_scores(
     Safe on partial data: any category without results contributes 0.
     Idempotent: calling twice with the same inputs returns the same breakdown.
     """
-    group_pts = score_group_stage(predictions.group_stage, results.group_stage)
-    bracket_pts = score_bracket(predictions.bracket_picks, results.knockout)
-    champion_pts = score_champion(predictions.champion_pick, results.knockout)
-    golden_boot_pts = score_golden_boot(predictions.golden_boot, results.player_goals)
-    bonus_pts = score_bonus(predictions.bonus_answers, results.bonus_correct)
+    # Each category is scored independently — a failure in one (e.g. a corrupt
+    # group row) contributes 0 rather than zeroing the user's whole breakdown.
+    group_pts = _safe(
+        lambda: score_group_stage(predictions.group_stage, results.group_stage),
+        "group_stage")
+    bracket_pts = _safe(
+        lambda: score_bracket(predictions.bracket_picks, results.knockout),
+        "bracket")
+    champion_pts = _safe(
+        lambda: score_champion(predictions.champion_pick, results.knockout),
+        "champion")
+    golden_boot_pts = _safe(
+        lambda: score_golden_boot(predictions.golden_boot, results.player_goals),
+        "golden_boot")
+    bonus_pts = _safe(
+        lambda: score_bonus(predictions.bonus_answers, results.bonus_correct),
+        "bonus")
 
     total = group_pts + bracket_pts + champion_pts + golden_boot_pts + bonus_pts
 

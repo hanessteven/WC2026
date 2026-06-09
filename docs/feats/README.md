@@ -24,6 +24,8 @@ Build features in numbered order. Each spec is self-contained and lists its depe
 | 11 | [Wave-Based Knockout Bracket](11_knockout_bracket.md) | 10, 03, 05 | ✅ |
 | 12 | [Scoring Engine](12_scoring_engine.md) | 03, 06–11 | ✅ |
 | 13 | [Leaderboard & Standings](13_leaderboard.md) | 12 | ✅ |
+| 14 | [Test Suite (Unit + Integration, non-UI)](14_test_suite.md) | 03, 06–13 | ✅ |
+| 15 | [Bug Backlog (from the test suite)](15_bugs.md) | 14 | ✅ |
 
 ## Dependency notes
 - **01–04 are the foundation** (scaffolding → schema → models → seed). Don't start prediction UIs until these exist.

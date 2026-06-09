@@ -24,6 +24,7 @@ from src.models import (
     TournamentResults,
     UserPredictions,
 )
+from src.db import get_admin_client
 from src.scoring import calculate_scores
 
 
@@ -229,6 +230,37 @@ def _build_user_predictions(user_id: str, client) -> UserPredictions:
     )
 
 
+def _score_row_for_user(user_id: str, client, tournament_results, now: str) -> dict:
+    """Build one user's scores-table row. Falls back to zeros only if the user's
+    predictions can't be loaded at all (e.g. a malformed id) — per-category
+    resilience lives in calculate_scores, so a single bad category never zeroes
+    the rest."""
+    try:
+        predictions = _build_user_predictions(user_id, client)
+        breakdown = calculate_scores(predictions, tournament_results)
+        return {
+            "user_id": user_id,
+            "group_stage_pts": breakdown.group_stage_pts,
+            "bracket_pts": breakdown.bracket_pts,
+            "champion_pts": breakdown.champion_pts,
+            "golden_boot_pts": breakdown.golden_boot_pts,
+            "bonus_pts": breakdown.bonus_pts,
+            "total_pts": breakdown.total_pts,
+            "calculated_at": now,
+        }
+    except Exception:
+        return {
+            "user_id": user_id,
+            "group_stage_pts": 0,
+            "bracket_pts": 0,
+            "champion_pts": 0,
+            "golden_boot_pts": 0,
+            "bonus_pts": 0,
+            "total_pts": 0,
+            "calculated_at": now,
+        }
+
+
 def recalculate_all_scores() -> None:
     """
     Recompute scores for every registered user and upsert into the scores table.
@@ -236,8 +268,6 @@ def recalculate_all_scores() -> None:
     Called automatically after any admin result save. Idempotent — safe to call
     repeatedly; each run overwrites the previous score row per user.
     """
-    from src.db import get_admin_client
-
     client = get_admin_client()
     users = client.table("profiles").select("id").execute().data
     if not users:
@@ -245,38 +275,24 @@ def recalculate_all_scores() -> None:
 
     tournament_results = _build_tournament_results(client)
     now = datetime.now(timezone.utc).isoformat()
-    score_rows = []
-
-    for user_row in users:
-        uid = user_row["id"]
-        try:
-            predictions = _build_user_predictions(uid, client)
-            breakdown = calculate_scores(predictions, tournament_results)
-            score_rows.append({
-                "user_id": uid,
-                "group_stage_pts": breakdown.group_stage_pts,
-                "bracket_pts": breakdown.bracket_pts,
-                "champion_pts": breakdown.champion_pts,
-                "golden_boot_pts": breakdown.golden_boot_pts,
-                "bonus_pts": breakdown.bonus_pts,
-                "total_pts": breakdown.total_pts,
-                "calculated_at": now,
-            })
-        except Exception:
-            # User has no/incomplete predictions — write zeros so they appear on
-            # the leaderboard rather than being absent from the scores table.
-            score_rows.append({
-                "user_id": uid,
-                "group_stage_pts": 0,
-                "bracket_pts": 0,
-                "champion_pts": 0,
-                "golden_boot_pts": 0,
-                "bonus_pts": 0,
-                "total_pts": 0,
-                "calculated_at": now,
-            })
+    score_rows = [
+        _score_row_for_user(u["id"], client, tournament_results, now) for u in users
+    ]
 
     client.table("scores").upsert(score_rows, on_conflict="user_id").execute()
 
-    from src.predictions import load_leaderboard
-    load_leaderboard.clear()
+
+def recalculate_user_score(user_id: str) -> None:
+    """
+    Recompute and upsert a single user's score.
+
+    Cheap enough to call after each user prediction save, which keeps a user's
+    standing fresh even if they edit a prediction after some results already
+    exist (rather than waiting for the next admin result entry).
+    """
+    client = get_admin_client()
+    tournament_results = _build_tournament_results(client)
+    now = datetime.now(timezone.utc).isoformat()
+    row = _score_row_for_user(user_id, client, tournament_results, now)
+
+    client.table("scores").upsert([row], on_conflict="user_id").execute()

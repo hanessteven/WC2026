@@ -92,6 +92,13 @@ class ChampionPick(BaseModel):
     champion: str
     dark_horse: str | None = None  # scores if the team reaches the quarterfinals (top 8)
 
+    @model_validator(mode="after")
+    def dark_horse_differs_from_champion(self) -> ChampionPick:
+        """The dark horse must be a different (long-shot) team, not the champion itself."""
+        if self.dark_horse is not None and self.dark_horse == self.champion:
+            raise ValueError("dark_horse must be a different team from the champion")
+        return self
+
 
 class RealMatchup(BaseModel):
     """Admin-entered actual matchup for a knockout round."""
