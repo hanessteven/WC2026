@@ -1,0 +1,67 @@
+"""DB helpers for reading and writing prediction data.
+
+All writes go through the service-role admin client (bypasses RLS).
+Cache seed/reference data aggressively; clear prediction caches after writes.
+"""
+from __future__ import annotations
+
+import streamlit as st
+
+
+# ── Seed / reference data (cached long — never changes) ──────────────────────
+
+@st.cache_data(ttl=3600)
+def load_teams_by_group() -> dict[str, list[dict]]:
+    """Return {group_letter: [{name, flag_emoji, id}, ...]} ordered by seed position."""
+    from src.db import get_admin_client
+    result = (
+        get_admin_client()
+        .table("seed_teams")
+        .select("id, name, group_letter, flag_emoji")
+        .order("id")
+        .execute()
+    )
+    groups: dict[str, list[dict]] = {}
+    for row in result.data:
+        groups.setdefault(row["group_letter"], []).append(row)
+    return groups
+
+
+# ── Lock state ────────────────────────────────────────────────────────────────
+
+def is_locked(category: str) -> bool:
+    """Return True if the given lock category is active."""
+    from src.db import get_admin_client
+    result = (
+        get_admin_client()
+        .table("lock_state")
+        .select("is_locked")
+        .eq("category", category)
+        .execute()
+    )
+    return bool(result.data and result.data[0]["is_locked"])
+
+
+# ── Group stage predictions ───────────────────────────────────────────────────
+
+@st.cache_data(ttl=10)
+def load_group_predictions(user_id: str) -> dict[str, dict]:
+    """Return {group_letter: {predicted_ranking, third_place_advances}} for this user."""
+    from src.db import get_admin_client
+    result = (
+        get_admin_client()
+        .table("predictions_group_stage")
+        .select("group_letter, predicted_ranking, third_place_advances")
+        .eq("user_id", user_id)
+        .execute()
+    )
+    return {row["group_letter"]: row for row in result.data}
+
+
+def save_group_predictions(user_id: str, rows: list[dict]) -> None:
+    """Upsert all group prediction rows, then invalidate the read cache."""
+    from src.db import get_admin_client
+    get_admin_client().table("predictions_group_stage").upsert(
+        rows, on_conflict="user_id,group_letter"
+    ).execute()
+    load_group_predictions.clear()

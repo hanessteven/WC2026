@@ -16,7 +16,7 @@ Build features in numbered order. Each spec is self-contained and lists its depe
 | 03 | [Data Models (Pydantic)](03_data_models.md) | 02 | ✅ |
 | 04 | [Seed Data](04_seed_data.md) | 02, 03 | ✅ |
 | 05 | [Authentication (Email + Password + Whitelist)](05_authentication.md) | 01, 02 | ✅ |
-| 06 | [Group Stage Predictions](06_group_stage_predictions.md) | 03, 04, 05 | 🔲 |
+| 06 | [Group Stage Predictions](06_group_stage_predictions.md) | 03, 04, 05 | ✅ |
 | 07 | [Upfront Champion Pick](07_champion_pick.md) | 03, 05 | 🔲 |
 | 08 | [Golden Boot Salary-Cap Draft](08_golden_boot_draft.md) | 03, 04, 05 | 🔲 |
 | 09 | [Bonus Questions](09_bonus_questions.md) | 03, 04, 05 | 🔲 |

@@ -1,15 +1,9 @@
-# Admin panel — implemented in feature 10.
-import sys, os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-
+# Admin panel — full implementation in feature 10.
 import streamlit as st
-from src.auth import require_auth, is_admin
-from src.components import render_sidebar
+from src.auth import get_current_user, is_admin
 
-user = require_auth()
-render_sidebar()
-
-if not is_admin(user):
+# Defense-in-depth: app.py already gates nav, but verify here too.
+if not is_admin(get_current_user()):
     st.error("Access denied.")
     st.stop()
 
