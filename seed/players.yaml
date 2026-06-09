@@ -160,6 +160,16 @@ players:
     tier: 3
     cost: 10
 
+  - name: "Folarin Balogun"
+    team_name: "United States"
+    tier: 3
+    cost: 9
+
+  - name: "Weston McKennie"
+    team_name: "United States"
+    tier: 3
+    cost: 7
+
   - name: "Pedri"
     team_name: "Spain"
     tier: 3

@@ -142,3 +142,48 @@ def save_golden_boot_picks(user_id: str, player_ids: list[int]) -> None:
             [{"user_id": user_id, "player_id": pid} for pid in player_ids]
         ).execute()
     load_golden_boot_picks.clear()
+
+
+# ── Bonus questions ───────────────────────────────────────────────────────────
+
+@st.cache_data(ttl=3600)
+def load_bonus_questions() -> list[dict]:
+    """Return [{id, question_text, valid_options, point_value}, ...] ordered by id."""
+    from src.db import get_admin_client
+    result = (
+        get_admin_client()
+        .table("bonus_question_defs")
+        .select("id, question_text, valid_options, point_value")
+        .order("id")
+        .execute()
+    )
+    return result.data
+
+
+@st.cache_data(ttl=10)
+def load_bonus_answers(user_id: str) -> dict[int, str]:
+    """Return {question_id: chosen_option} for this user."""
+    from src.db import get_admin_client
+    result = (
+        get_admin_client()
+        .table("predictions_bonus")
+        .select("question_id, chosen_option")
+        .eq("user_id", user_id)
+        .execute()
+    )
+    return {row["question_id"]: row["chosen_option"] for row in result.data}
+
+
+def save_bonus_answers(user_id: str, answers: dict[int, str]) -> None:
+    """Upsert all bonus answers for this user, then invalidate the cache."""
+    from datetime import datetime, timezone
+    from src.db import get_admin_client
+    now = datetime.now(timezone.utc).isoformat()
+    rows = [
+        {"user_id": user_id, "question_id": qid, "chosen_option": option, "updated_at": now}
+        for qid, option in answers.items()
+    ]
+    get_admin_client().table("predictions_bonus").upsert(
+        rows, on_conflict="user_id,question_id"
+    ).execute()
+    load_bonus_answers.clear()
