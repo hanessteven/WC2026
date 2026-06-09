@@ -42,3 +42,9 @@ def get_supabase_service_key() -> str:
 
 def get_cookie_secret() -> str:
     return _require("COOKIE_SECRET")
+
+
+def get_leaderboard_exclude_emails() -> set[str]:
+    """Optional comma-separated list of emails to hide from the leaderboard (e.g. test accounts)."""
+    raw = os.getenv("LEADERBOARD_EXCLUDE_EMAILS", "")
+    return {e.strip().lower() for e in raw.split(",") if e.strip()}
