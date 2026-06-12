@@ -58,25 +58,34 @@ gb_lock = load_golden_boot_result_lock()
 groups_all_locked = all(group_locks.get(letter, False) for letter in group_locks.keys())
 
 
-def _highlight_user(row: pd.Series) -> list[str]:
+def _style_all(row: pd.Series) -> list[str]:
+    """Highlight current user and italicize temporary columns."""
+    styles = [""] * len(row)
+
+    # Highlight current user's row
     if isinstance(row.get("Name", ""), str) and row["Name"].startswith("★"):
-        return ["background-color: #2a4a1a; color: #ffd700"] * len(row)
-    return [""] * len(row)
+        styles = ["background-color: #2a4a1a; color: #ffd700"] * len(row)
+
+    # Italicize Group column if not locked
+    if "Group" in row.index and not groups_all_locked:
+        idx = row.index.get_loc("Group")
+        if styles[idx]:
+            styles[idx] += " font-style: italic;"
+        else:
+            styles[idx] = "font-style: italic;"
+
+    # Italicize Boot column if not locked
+    if "Boot" in row.index and not gb_lock:
+        idx = row.index.get_loc("Boot")
+        if styles[idx]:
+            styles[idx] += " font-style: italic;"
+        else:
+            styles[idx] = "font-style: italic;"
+
+    return styles
 
 
-def _style_cell(val, col: str) -> str:
-    """Italicize temporary columns (not finalized)."""
-    if col == "Group" and not groups_all_locked:
-        return "font-style: italic;"
-    if col == "Boot" and not gb_lock:
-        return "font-style: italic;"
-    return ""
-
-
-styled = df.style.apply(_highlight_user, axis=1)
-for col in ["Group", "Boot"]:
-    styled = styled.applymap(lambda v, c=col: _style_cell(v, c), subset=pd.IndexSlice[:, col])
-
+styled = df.style.apply(_style_all, axis=1)
 st.dataframe(styled, hide_index=True, use_container_width=True)
 
 if not groups_all_locked or not gb_lock:
