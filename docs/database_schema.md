@@ -1,6 +1,6 @@
 # Detailed Database Schema
 
-Migration files: `supabase/migrations/001_schema.sql` + `002_rls.sql`
+Migration files: `supabase/migrations/001_schema.sql`, `002_rls.sql`, ..., `007_result_finalization_locks.sql`
 
 ## Tables
 
@@ -87,6 +87,22 @@ Unique constraint on (round, slot).
 | player_id | int PK | FK → seed_players(id) |
 | goals_scored | int | default 0 |
 | updated_at | timestamptz | |
+
+### results_group_lock
+| Column | Type | Notes |
+|--------|------|-------|
+| group_letter | char(1) PK | 'A'–'L' |
+| is_locked | bool | default false; admin toggles to finalize group results |
+
+Pre-seeded with all 12 groups, all unlocked. Prevents accidental edits to group results after they're entered.
+
+### results_golden_boot_lock
+| Column | Type | Notes |
+|--------|------|-------|
+| id | int PK | always 1 (CHECK constraint) |
+| is_locked | bool | default false; admin toggles to finalize golden boot results |
+
+Single-row table. Pre-seeded unlocked. Prevents accidental edits to golden boot goals after the top scorer is finalized.
 
 ### predictions_group_stage
 | Column | Type | Notes |

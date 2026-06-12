@@ -20,6 +20,38 @@ from src.predictions import (
 from src.score_runner import recalculate_all_scores
 
 
+# ── Results finalization (locking) ────────────────────────────────────────────
+
+@st.cache_data(ttl=30)
+def load_group_result_locks() -> dict[str, bool]:
+    """Return {group_letter: is_locked} for all 12 groups."""
+    result = get_admin_client().table("results_group_lock").select("group_letter, is_locked").execute()
+    return {row["group_letter"]: row["is_locked"] for row in result.data}
+
+
+def set_group_result_lock(group_letter: str, locked: bool) -> None:
+    """Lock or unlock a group's results. Invalidates the cache."""
+    get_admin_client().table("results_group_lock").update(
+        {"is_locked": locked}
+    ).eq("group_letter", group_letter).execute()
+    load_group_result_locks.clear()
+
+
+@st.cache_data(ttl=30)
+def load_golden_boot_result_lock() -> bool:
+    """Return whether the golden boot results are locked."""
+    result = get_admin_client().table("results_golden_boot_lock").select("is_locked").eq("id", 1).execute()
+    return result.data[0]["is_locked"] if result.data else False
+
+
+def set_golden_boot_result_lock(locked: bool) -> None:
+    """Lock or unlock the golden boot results. Invalidates the cache."""
+    get_admin_client().table("results_golden_boot_lock").update(
+        {"is_locked": locked}
+    ).eq("id", 1).execute()
+    load_golden_boot_result_lock.clear()
+
+
 # ── Group results ──────────────────────────────────────────────────────────────
 
 @st.cache_data(ttl=30)
