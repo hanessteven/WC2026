@@ -9,6 +9,8 @@ if not is_admin(get_current_user()):
 
 from src.admin import (
     load_all_users,
+    load_golden_boot_result_lock,
+    load_group_result_locks,
     load_group_results,
     load_lock_state,
     load_player_goals,
@@ -19,6 +21,8 @@ from src.admin import (
     save_group_results,
     save_match_results,
     save_player_goals,
+    set_golden_boot_result_lock,
+    set_group_result_lock,
     set_lock,
 )
 from src.predictions import load_bonus_questions, load_players_by_tier, load_teams_by_group
@@ -98,6 +102,51 @@ with tab_groups:
     st.subheader("Group stage results")
     st.caption("Enter the final standings for all 12 groups and which 8 third-place teams advanced.")
 
+    # ── Results Finalization ────────────────────────────────────────────
+    st.markdown("### 🔒 Results Finalization")
+    st.caption("Lock each group's results to prevent accidental edits. Locked groups are read-only.")
+
+    group_locks = load_group_result_locks()
+    groups_ordered = sorted(group_locks.keys())
+
+    col_grps = st.columns(4)
+    for i, letter in enumerate(groups_ordered):
+        locked = group_locks.get(letter, False)
+        with col_grps[i % 4]:
+            col_label, col_btn = st.columns([3, 1])
+            with col_label:
+                st.write(f"Group {letter}")
+            with col_btn:
+                if locked:
+                    st.write("🔒")
+                    if st.button("Unlock", key=f"unlock_group_{letter}", use_container_width=True):
+                        set_group_result_lock(letter, False)
+                        st.rerun()
+                else:
+                    st.write("🔓")
+                    if st.button("Lock", key=f"lock_group_{letter}", use_container_width=True):
+                        set_group_result_lock(letter, True)
+                        st.rerun()
+
+    st.divider()
+    gb_locked = load_golden_boot_result_lock()
+    col_gb_label, col_gb_status, col_gb_btn = st.columns([2, 1, 1])
+    with col_gb_label:
+        st.write("Golden Boot Results")
+    with col_gb_status:
+        st.write("🔒" if gb_locked else "🔓")
+    with col_gb_btn:
+        if gb_locked:
+            if st.button("Unlock GB", key="unlock_gb", use_container_width=True):
+                set_golden_boot_result_lock(False)
+                st.rerun()
+        else:
+            if st.button("Lock GB", key="lock_gb", use_container_width=True):
+                set_golden_boot_result_lock(True)
+                st.rerun()
+
+    st.divider()
+
     teams_by_group = load_teams_by_group()
     saved_results = load_group_results()
     groups = sorted(teams_by_group.keys())
@@ -110,10 +159,14 @@ with tab_groups:
         names = [t["name"] for t in teams]
         flag_map = {t["name"]: t.get("flag_emoji") or "" for t in teams}
         saved_ranking: list[str] = (saved_results.get(letter) or {}).get("final_ranking") or []
+        group_is_locked = group_locks.get(letter, False)
 
         with (col_l if i % 2 == 0 else col_r):
             with st.container(border=True):
-                st.markdown(f"**Group {letter}**")
+                header = f"**Group {letter}**" + (" 🔒" if group_is_locked else "")
+                st.markdown(header)
+                if group_is_locked:
+                    st.caption("Results locked. Unlock above to edit.")
                 picks: list[str] = []
                 for pos, label in enumerate(["🥇 1st", "🥈 2nd", "🥉 3rd", "4th"]):
                     if len(saved_ranking) > pos and saved_ranking[pos] in names:
@@ -126,6 +179,7 @@ with tab_groups:
                         index=default_idx,
                         key=f"res_grp_{letter}_{pos}",
                         format_func=lambda n, fm=flag_map: f"{fm.get(n, '')} {n}".strip(),
+                        disabled=group_is_locked,
                     )
                     picks.append(pick)
                 final_rankings[letter] = picks
@@ -150,6 +204,7 @@ with tab_groups:
                 label,
                 value=saved_advances.get(letter, False),
                 key=f"res_tp_{letter}",
+                disabled=group_locks.get(letter, False),
             )
 
     tp_count = sum(tp_results.values())
@@ -341,6 +396,10 @@ with tab_pb:
     st.subheader("Golden Boot goals")
     st.caption("Record goals scored per player. Used to determine the Golden Boot winner.")
 
+    gb_result_locked = load_golden_boot_result_lock()
+    if gb_result_locked:
+        st.info("🔒 Golden Boot results are locked. Unlock in the Group Results tab to edit.")
+
     players_by_tier = load_players_by_tier()
     saved_goals = load_player_goals()
 
@@ -367,9 +426,10 @@ with tab_pb:
                         step=1,
                         key=f"goals_{pid}",
                         label_visibility="collapsed",
+                        disabled=gb_result_locked,
                     )
 
-    if st.button("💾 Save Goals", type="primary", use_container_width=True, key="save_goals"):
+    if st.button("💾 Save Goals", type="primary", use_container_width=True, key="save_goals", disabled=gb_result_locked):
         try:
             save_player_goals(goal_inputs)
             st.success("✅ Goals saved.")

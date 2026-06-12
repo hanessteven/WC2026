@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 from collections import Counter, defaultdict
 
+from src.admin import (
+    load_golden_boot_result_lock,
+    load_group_result_locks,
+)
 from src.predictions import (
     load_all_bonus_answers,
     load_all_champion_picks,
@@ -48,6 +52,11 @@ for row in rows:
 
 df = pd.DataFrame(display_data)
 
+# Load lock state for conditional styling
+group_locks = load_group_result_locks()
+gb_lock = load_golden_boot_result_lock()
+groups_all_locked = all(group_locks.get(letter, False) for letter in group_locks.keys())
+
 
 def _highlight_user(row: pd.Series) -> list[str]:
     if isinstance(row.get("Name", ""), str) and row["Name"].startswith("★"):
@@ -55,7 +64,23 @@ def _highlight_user(row: pd.Series) -> list[str]:
     return [""] * len(row)
 
 
-st.dataframe(df.style.apply(_highlight_user, axis=1), hide_index=True, use_container_width=True)
+def _style_cell(val, col: str) -> str:
+    """Italicize temporary columns (not finalized)."""
+    if col == "Group" and not groups_all_locked:
+        return "font-style: italic;"
+    if col == "Boot" and not gb_lock:
+        return "font-style: italic;"
+    return ""
+
+
+styled = df.style.apply(_highlight_user, axis=1)
+for col in ["Group", "Boot"]:
+    styled = styled.applymap(lambda v, c=col: _style_cell(v, c), subset=pd.IndexSlice[:, col])
+
+st.dataframe(styled, hide_index=True, use_container_width=True)
+
+if not groups_all_locked or not gb_lock:
+    st.caption("*Italic scores are temporary and update as results are finalized. Finalize results in the admin panel.*")
 
 if not user:
     st.caption("Sign in from the Home page to see email addresses, track your own rank, and view everyone's predictions.")

@@ -8,6 +8,8 @@ from __future__ import annotations
 from uuid import uuid4
 
 from src.admin import (
+    load_golden_boot_result_lock,
+    load_group_result_locks,
     load_group_results,
     load_lock_state,
     load_player_goals,
@@ -18,6 +20,8 @@ from src.admin import (
     save_group_results,
     save_match_results,
     save_player_goals,
+    set_golden_boot_result_lock,
+    set_group_result_lock,
     set_lock,
 )
 
@@ -172,3 +176,44 @@ def test_reset_user_picks_wipes_only_that_user(fake_db):
         remaining = fake_db.rows(t)
         assert all(r["user_id"] != U1 for r in remaining), f"{t} still has U1"
         assert any(r["user_id"] == U2 for r in remaining), f"{t} lost U2"
+
+
+# ── results finalization (locking) ────────────────────────────────────────────
+
+def test_load_group_result_locks_default_false(fake_db):
+    groups = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"]
+    fake_db.seed("results_group_lock", [{"group_letter": g, "is_locked": False} for g in groups])
+    locks = load_group_result_locks()
+    assert all(not locked for locked in locks.values())
+
+
+def test_set_group_result_lock_toggles_state(fake_db):
+    groups = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"]
+    fake_db.seed("results_group_lock", [{"group_letter": g, "is_locked": False} for g in groups])
+
+    set_group_result_lock("A", True)
+    locks = load_group_result_locks()
+    assert locks["A"] is True
+    assert locks["B"] is False
+
+    set_group_result_lock("A", False)
+    locks = load_group_result_locks()
+    assert locks["A"] is False
+
+
+def test_load_golden_boot_result_lock_default_false(fake_db):
+    fake_db.seed("results_golden_boot_lock", [{"id": 1, "is_locked": False}])
+    locked = load_golden_boot_result_lock()
+    assert locked is False
+
+
+def test_set_golden_boot_result_lock_toggles_state(fake_db):
+    fake_db.seed("results_golden_boot_lock", [{"id": 1, "is_locked": False}])
+
+    set_golden_boot_result_lock(True)
+    locked = load_golden_boot_result_lock()
+    assert locked is True
+
+    set_golden_boot_result_lock(False)
+    locked = load_golden_boot_result_lock()
+    assert locked is False
