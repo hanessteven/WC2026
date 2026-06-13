@@ -15,15 +15,18 @@ from src.admin import (
     load_lock_state,
     load_player_goals,
     load_real_bracket,
+    load_third_place_advancers_lock,
     reset_user_picks,
     save_bonus_correct_options,
     save_bracket_round,
     save_group_results,
     save_match_results,
     save_player_goals,
+    save_third_place_advancers,
     set_golden_boot_result_lock,
     set_group_result_lock,
     set_lock,
+    set_third_place_advancers_lock,
 )
 from src.predictions import load_bonus_questions, load_players_by_tier, load_teams_by_group
 
@@ -185,7 +188,53 @@ with tab_groups:
                 final_rankings[letter] = picks
 
     st.divider()
-    st.markdown("**Which 8 third-place teams advanced?**")
+    if st.button("💾 Save Group Results", type="primary", use_container_width=True):
+        errors: list[str] = []
+        for letter in groups:
+            if len(set(final_rankings[letter])) != 4:
+                errors.append(f"Group {letter}: all four positions must be different teams.")
+        if errors:
+            for msg in errors:
+                st.error(msg)
+        else:
+            from datetime import datetime, timezone
+            now = datetime.now(timezone.utc).isoformat()
+            rows = [
+                {
+                    "group_letter": letter,
+                    "final_ranking": final_rankings[letter],
+                    "updated_at": now,
+                }
+                for letter in groups
+            ]
+            try:
+                save_group_results(rows)
+                st.success("✅ Group results saved.")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Couldn't save: {e}")
+
+    st.divider()
+    st.markdown("### ⭐ Third-Place Advancers")
+    st.caption("Select which 8 third-place teams advance to the knockout round.")
+
+    tp_locked = load_third_place_advancers_lock()
+    col_tp_status, col_tp_btn = st.columns([4, 1])
+    with col_tp_status:
+        st.write("🔒 Locked" if tp_locked else "🔓 Unlocked")
+    with col_tp_btn:
+        if tp_locked:
+            if st.button("Unlock TP", key="unlock_tp", use_container_width=True):
+                set_third_place_advancers_lock(False)
+                st.rerun()
+        else:
+            if st.button("Lock TP", key="lock_tp", use_container_width=True):
+                set_third_place_advancers_lock(True)
+                st.rerun()
+
+    if tp_locked:
+        st.info("3rd place selection locked. Unlock above to edit.")
+
     saved_advances = {
         letter: (saved_results.get(letter) or {}).get("third_place_advances", False)
         for letter in groups
@@ -204,7 +253,7 @@ with tab_groups:
                 label,
                 value=saved_advances.get(letter, False),
                 key=f"res_tp_{letter}",
-                disabled=group_locks.get(letter, False),
+                disabled=tp_locked,
             )
 
     tp_count = sum(tp_results.values())
@@ -213,32 +262,13 @@ with tab_groups:
     else:
         st.caption(f"**{tp_count} / 8** selected — need exactly 8")
 
-    st.divider()
-    if st.button("💾 Save Group Results", type="primary", use_container_width=True):
-        errors: list[str] = []
-        for letter in groups:
-            if len(set(final_rankings[letter])) != 4:
-                errors.append(f"Group {letter}: all four positions must be different teams.")
+    if st.button("💾 Save Advancers", type="primary", use_container_width=True, disabled=tp_locked):
         if tp_count != 8:
-            errors.append(f"Select exactly 8 third-place advancers ({tp_count} selected).")
-        if errors:
-            for msg in errors:
-                st.error(msg)
+            st.error(f"Select exactly 8 third-place advancers ({tp_count} selected).")
         else:
-            from datetime import datetime, timezone
-            now = datetime.now(timezone.utc).isoformat()
-            rows = [
-                {
-                    "group_letter": letter,
-                    "final_ranking": final_rankings[letter],
-                    "third_place_advances": tp_results[letter],
-                    "updated_at": now,
-                }
-                for letter in groups
-            ]
             try:
-                save_group_results(rows)
-                st.success("✅ Group results saved.")
+                save_third_place_advancers(tp_results)
+                st.success("✅ Third-place advancers saved.")
                 st.rerun()
             except Exception as e:
                 st.error(f"Couldn't save: {e}")

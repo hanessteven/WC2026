@@ -1,6 +1,6 @@
 # Detailed Database Schema
 
-Migration files: `supabase/migrations/001_schema.sql`, `002_rls.sql`, ..., `007_result_finalization_locks.sql`
+Migration files: `supabase/migrations/001_schema.sql`, `002_rls.sql`, ..., `008_third_place_advancers_lock.sql`
 
 ## Tables
 
@@ -103,6 +103,14 @@ Pre-seeded with all 12 groups, all unlocked. Prevents accidental edits to group 
 | is_locked | bool | default false; admin toggles to finalize golden boot results |
 
 Single-row table. Pre-seeded unlocked. Prevents accidental edits to golden boot goals after the top scorer is finalized.
+
+### results_third_place_advancers_lock
+| Column | Type | Notes |
+|--------|------|-------|
+| id | int PK | always 1 (CHECK constraint) |
+| is_locked | bool | default false; admin toggles to finalize which 8 teams advance |
+
+Single-row table. Pre-seeded unlocked. Prevents accidental edits to 3rd place advancer selection after it's finalized.
 
 ### predictions_group_stage
 | Column | Type | Notes |
