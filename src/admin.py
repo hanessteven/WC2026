@@ -52,6 +52,21 @@ def set_golden_boot_result_lock(locked: bool) -> None:
     load_golden_boot_result_lock.clear()
 
 
+@st.cache_data(ttl=30)
+def load_third_place_advancers_lock() -> bool:
+    """Return whether the 3rd place advancers selection is locked."""
+    result = get_admin_client().table("results_third_place_advancers_lock").select("is_locked").eq("id", 1).execute()
+    return result.data[0]["is_locked"] if result.data else False
+
+
+def set_third_place_advancers_lock(locked: bool) -> None:
+    """Lock or unlock the 3rd place advancers selection. Invalidates the cache."""
+    get_admin_client().table("results_third_place_advancers_lock").update(
+        {"is_locked": locked}
+    ).eq("id", 1).execute()
+    load_third_place_advancers_lock.clear()
+
+
 # ── Group results ──────────────────────────────────────────────────────────────
 
 @st.cache_data(ttl=30)
@@ -67,6 +82,21 @@ def load_group_results() -> dict[str, dict]:
 
 
 def save_group_results(rows: list[dict]) -> None:
+    """Save final group rankings. Does not require 3rd place advancers selection."""
+    get_admin_client().table("results_group_stage").upsert(
+        rows, on_conflict="group_letter"
+    ).execute()
+    load_group_results.clear()
+    recalculate_all_scores()
+    load_leaderboard.clear()
+
+
+def save_third_place_advancers(tp_results: dict[str, bool]) -> None:
+    """Update third_place_advances for all groups. tp_results = {group_letter: bool}."""
+    rows = [
+        {"group_letter": letter, "third_place_advances": advances}
+        for letter, advances in tp_results.items()
+    ]
     get_admin_client().table("results_group_stage").upsert(
         rows, on_conflict="group_letter"
     ).execute()

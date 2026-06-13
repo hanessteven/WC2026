@@ -14,15 +14,18 @@ from src.admin import (
     load_lock_state,
     load_player_goals,
     load_real_bracket,
+    load_third_place_advancers_lock,
     reset_user_picks,
     save_bonus_correct_options,
     save_bracket_round,
     save_group_results,
     save_match_results,
     save_player_goals,
+    save_third_place_advancers,
     set_golden_boot_result_lock,
     set_group_result_lock,
     set_lock,
+    set_third_place_advancers_lock,
 )
 
 U1 = str(uuid4())
@@ -216,4 +219,22 @@ def test_set_golden_boot_result_lock_toggles_state(fake_db):
 
     set_golden_boot_result_lock(False)
     locked = load_golden_boot_result_lock()
+    assert locked is False
+
+
+def test_load_third_place_advancers_lock_default_false(fake_db):
+    fake_db.seed("results_third_place_advancers_lock", [{"id": 1, "is_locked": False}])
+    locked = load_third_place_advancers_lock()
+    assert locked is False
+
+
+def test_set_third_place_advancers_lock_toggles_state(fake_db):
+    fake_db.seed("results_third_place_advancers_lock", [{"id": 1, "is_locked": False}])
+
+    set_third_place_advancers_lock(True)
+    locked = load_third_place_advancers_lock()
+    assert locked is True
+
+    set_third_place_advancers_lock(False)
+    locked = load_third_place_advancers_lock()
     assert locked is False
