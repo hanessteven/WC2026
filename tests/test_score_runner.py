@@ -197,3 +197,70 @@ def test_corrupt_group_should_not_wipe_bracket_points(fake_db):
 
     # The bracket pick is valid and should still score regardless of the bad group row.
     assert _score_row(fake_db, U1)["bracket_pts"] == 1
+
+
+def test_unlisted_golden_boot_winner_blocks_seeded_players(fake_db):
+    """If an unlisted player has the most goals, no seeded player gets points."""
+    db = fake_db
+    db.seed("profiles", [{"id": U1, "email": "a@t.com", "display_name": "A"}])
+    db.seed("predictions_golden_boot", [
+        {"user_id": U1, "player_id": 1},  # drafted seeded player 1
+    ])
+    db.seed("seed_players", [
+        {"id": 1, "name": "Seeded", "team_name": "T", "tier": 1, "cost": 50},
+    ])
+    db.seed("results_player_goals", [
+        {"player_id": 1, "goals_scored": 5},  # seeded player has 5 goals
+    ])
+    db.seed("results_unlisted_golden_boot_winner", [
+        {"player_name": "Unlisted", "goals_scored": 10},  # unlisted has more
+    ])
+
+    recalculate_all_scores()
+
+    row = _score_row(db, U1)
+    assert row["golden_boot_pts"] == 0  # no points, unlisted has most
+
+
+def test_seeded_player_wins_if_more_goals_than_unlisted(fake_db):
+    """If a seeded player has more goals than unlisted, they award points normally."""
+    db = fake_db
+    db.seed("profiles", [{"id": U1, "email": "a@t.com", "display_name": "A"}])
+    db.seed("predictions_golden_boot", [
+        {"user_id": U1, "player_id": 1},
+    ])
+    db.seed("seed_players", [
+        {"id": 1, "name": "Seeded", "team_name": "T", "tier": 1, "cost": 50},
+    ])
+    db.seed("results_player_goals", [
+        {"player_id": 1, "goals_scored": 10},  # seeded has more
+    ])
+    db.seed("results_unlisted_golden_boot_winner", [
+        {"player_name": "Unlisted", "goals_scored": 5},  # unlisted has fewer
+    ])
+
+    recalculate_all_scores()
+
+    row = _score_row(db, U1)
+    assert row["golden_boot_pts"] == 7  # points awarded
+
+
+def test_no_unlisted_winner_uses_normal_logic(fake_db):
+    """If no unlisted winner recorded, seeded player logic works normally."""
+    db = fake_db
+    db.seed("profiles", [{"id": U1, "email": "a@t.com", "display_name": "A"}])
+    db.seed("predictions_golden_boot", [
+        {"user_id": U1, "player_id": 1},
+    ])
+    db.seed("seed_players", [
+        {"id": 1, "name": "Seeded", "team_name": "T", "tier": 1, "cost": 50},
+    ])
+    db.seed("results_player_goals", [
+        {"player_id": 1, "goals_scored": 10},
+    ])
+    # no results_unlisted_golden_boot_winner row
+
+    recalculate_all_scores()
+
+    row = _score_row(db, U1)
+    assert row["golden_boot_pts"] == 7  # normal award
