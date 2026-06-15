@@ -172,7 +172,7 @@ def load_unlisted_golden_boot_winner() -> dict | None:
 
 
 def save_unlisted_golden_boot_winner(player_name: str, goals_scored: int) -> None:
-    """Record or update an unlisted player as the Golden Boot winner."""
+    """Record or update an unlisted player as the Golden Boot winner, then recalculate scores."""
     existing = load_unlisted_golden_boot_winner()
     if existing:
         # Update the most recent entry
@@ -187,6 +187,8 @@ def save_unlisted_golden_boot_winner(player_name: str, goals_scored: int) -> Non
             "goals_scored": goals_scored,
         }).execute()
     load_unlisted_golden_boot_winner.clear()
+    recalculate_all_scores()
+    load_leaderboard.clear()
 
 
 def save_player_goals(goals: dict[int, int]) -> None:
