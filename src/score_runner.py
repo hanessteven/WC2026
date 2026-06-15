@@ -96,6 +96,25 @@ def _build_tournament_results(client) -> TournamentResults:
             for r in goals_rows
         ]
 
+    # Check for unlisted golden boot winner and include if they have more goals
+    unlisted_rows = (
+        client.table("results_unlisted_golden_boot_winner")
+        .select("player_name, goals_scored")
+        .order("created_at", desc=True)
+        .execute()
+        .data
+    )
+    if unlisted_rows:
+        unlisted = unlisted_rows[0]  # Most recently added/updated
+        # Add as a fake player with a special negative ID so it's found as top scorer
+        player_goals.append(
+            PlayerGoals(
+                player_id=-999,
+                player_name=unlisted["player_name"],
+                goals_scored=unlisted["goals_scored"],
+            )
+        )
+
     # Bonus correct options
     bonus_rows = (
         client.table("bonus_question_defs")
