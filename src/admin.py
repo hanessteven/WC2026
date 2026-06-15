@@ -157,12 +157,36 @@ def load_player_goals() -> dict[int, int]:
     return {row["player_id"]: row["goals_scored"] for row in result.data}
 
 
+@st.cache_data(ttl=30)
+def load_unlisted_golden_boot_winner() -> dict | None:
+    """Load the current unlisted Golden Boot winner, if any."""
+    result = (
+        get_admin_client()
+        .table("results_unlisted_golden_boot_winner")
+        .select("player_name, goals_scored")
+        .order("created_at", desc=True)
+        .limit(1)
+        .execute()
+    )
+    return result.data[0] if result.data else None
+
+
 def save_unlisted_golden_boot_winner(player_name: str, goals_scored: int) -> None:
-    """Record an unlisted player as the Golden Boot winner for documentation."""
-    get_admin_client().table("results_unlisted_golden_boot_winner").insert({
-        "player_name": player_name,
-        "goals_scored": goals_scored,
-    }).execute()
+    """Record or update an unlisted player as the Golden Boot winner."""
+    existing = load_unlisted_golden_boot_winner()
+    if existing:
+        # Update the most recent entry
+        get_admin_client().table("results_unlisted_golden_boot_winner").update({
+            "player_name": player_name,
+            "goals_scored": goals_scored,
+        }).eq("player_name", existing["player_name"]).execute()
+    else:
+        # Insert new entry
+        get_admin_client().table("results_unlisted_golden_boot_winner").insert({
+            "player_name": player_name,
+            "goals_scored": goals_scored,
+        }).execute()
+    load_unlisted_golden_boot_winner.clear()
 
 
 def save_player_goals(goals: dict[int, int]) -> None:
