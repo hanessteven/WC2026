@@ -157,6 +157,14 @@ def load_player_goals() -> dict[int, int]:
     return {row["player_id"]: row["goals_scored"] for row in result.data}
 
 
+def save_unlisted_golden_boot_winner(player_name: str, goals_scored: int) -> None:
+    """Record an unlisted player as the Golden Boot winner for documentation."""
+    get_admin_client().table("results_unlisted_golden_boot_winner").insert({
+        "player_name": player_name,
+        "goals_scored": goals_scored,
+    }).execute()
+
+
 def save_player_goals(goals: dict[int, int]) -> None:
     """Replace all goal tallies. goals = {player_id: goals_scored}."""
     now = datetime.now(timezone.utc).isoformat()

@@ -23,6 +23,7 @@ from src.admin import (
     save_match_results,
     save_player_goals,
     save_third_place_advancers,
+    save_unlisted_golden_boot_winner,
     set_golden_boot_result_lock,
     set_group_result_lock,
     set_lock,
@@ -463,6 +464,22 @@ with tab_pb:
         try:
             save_player_goals(goal_inputs)
             st.success("✅ Goals saved.")
+            st.rerun()
+        except Exception as e:
+            st.error(f"Couldn't save: {e}")
+
+    st.markdown("**Unlisted player**")
+    st.caption("If the top scorer is not on the list above, enter their details here.")
+    col_name, col_goals = st.columns([3, 1])
+    with col_name:
+        unlisted_name = st.text_input("Player name", key="unlisted_player_name", disabled=gb_result_locked)
+    with col_goals:
+        unlisted_goals = st.number_input("Goals", min_value=0, step=1, key="unlisted_player_goals", disabled=gb_result_locked)
+
+    if unlisted_name and st.button("➕ Add Unlisted Player", use_container_width=True, disabled=gb_result_locked):
+        try:
+            save_unlisted_golden_boot_winner(unlisted_name, unlisted_goals)
+            st.success(f"✅ Recorded {unlisted_name} with {unlisted_goals} goals as the actual top scorer.")
             st.rerun()
         except Exception as e:
             st.error(f"Couldn't save: {e}")

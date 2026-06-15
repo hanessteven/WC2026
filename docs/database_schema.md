@@ -1,6 +1,6 @@
 # Detailed Database Schema
 
-Migration files: `supabase/migrations/001_schema.sql`, `002_rls.sql`, ..., `008_third_place_advancers_lock.sql`
+Migration files: `supabase/migrations/001_schema.sql`, `002_rls.sql`, ..., `009_unlisted_golden_boot_winner.sql`
 
 ## Tables
 
@@ -87,6 +87,16 @@ Unique constraint on (round, slot).
 | player_id | int PK | FK → seed_players(id) |
 | goals_scored | int | default 0 |
 | updated_at | timestamptz | |
+
+### results_unlisted_golden_boot_winner
+| Column | Type | Notes |
+|--------|------|-------|
+| id | serial PK | |
+| player_name | text | Name of the actual top scorer (not in seed_players) |
+| goals_scored | int | Goals scored by the unlisted player |
+| created_at | timestamptz | default now() |
+
+For documentation only. If the Golden Boot winner isn't on the seeded list, admin records them here. No one gets points since they weren't available for drafting.
 
 ### results_group_lock
 | Column | Type | Notes |
