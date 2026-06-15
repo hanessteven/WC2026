@@ -481,7 +481,7 @@ with tab_pb:
         default_goals = existing_unlisted["goals_scored"] if existing_unlisted else 0
         unlisted_goals = st.number_input("Goals", value=default_goals, min_value=0, step=1, key="unlisted_player_goals", disabled=gb_result_locked)
 
-    if unlisted_name and st.button("💾 Save Unlisted Player", use_container_width=True, disabled=gb_result_locked):
+    if st.button("💾 Save Unlisted Player", use_container_width=True, disabled=gb_result_locked or not unlisted_name):
         try:
             save_unlisted_golden_boot_winner(unlisted_name, unlisted_goals)
             st.success(f"✅ Saved {unlisted_name} with {unlisted_goals} goals.")
