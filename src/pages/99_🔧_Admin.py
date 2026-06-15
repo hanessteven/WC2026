@@ -16,6 +16,7 @@ from src.admin import (
     load_player_goals,
     load_real_bracket,
     load_third_place_advancers_lock,
+    load_unlisted_golden_boot_winner,
     reset_user_picks,
     save_bonus_correct_options,
     save_bracket_round,
@@ -469,17 +470,21 @@ with tab_pb:
             st.error(f"Couldn't save: {e}")
 
     st.markdown("**Unlisted player**")
-    st.caption("If the top scorer is not on the list above, enter their details here.")
+    st.caption("If the top scorer is not on the list above, record their details here.")
+
+    existing_unlisted = load_unlisted_golden_boot_winner()
     col_name, col_goals = st.columns([3, 1])
     with col_name:
-        unlisted_name = st.text_input("Player name", key="unlisted_player_name", disabled=gb_result_locked)
+        default_name = existing_unlisted["player_name"] if existing_unlisted else ""
+        unlisted_name = st.text_input("Player name", value=default_name, key="unlisted_player_name", disabled=gb_result_locked)
     with col_goals:
-        unlisted_goals = st.number_input("Goals", min_value=0, step=1, key="unlisted_player_goals", disabled=gb_result_locked)
+        default_goals = existing_unlisted["goals_scored"] if existing_unlisted else 0
+        unlisted_goals = st.number_input("Goals", value=default_goals, min_value=0, step=1, key="unlisted_player_goals", disabled=gb_result_locked)
 
-    if unlisted_name and st.button("➕ Add Unlisted Player", use_container_width=True, disabled=gb_result_locked):
+    if unlisted_name and st.button("💾 Save Unlisted Player", use_container_width=True, disabled=gb_result_locked):
         try:
             save_unlisted_golden_boot_winner(unlisted_name, unlisted_goals)
-            st.success(f"✅ Recorded {unlisted_name} with {unlisted_goals} goals as the actual top scorer.")
+            st.success(f"✅ Saved {unlisted_name} with {unlisted_goals} goals.")
             st.rerun()
         except Exception as e:
             st.error(f"Couldn't save: {e}")
