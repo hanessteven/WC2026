@@ -2,10 +2,6 @@ import streamlit as st
 import pandas as pd
 from collections import Counter, defaultdict
 
-from src.admin import (
-    load_golden_boot_result_lock,
-    load_group_result_locks,
-)
 from src.predictions import (
     load_all_bonus_answers,
     load_all_champion_picks,
@@ -51,45 +47,9 @@ for row in rows:
     display_data.append(entry)
 
 df = pd.DataFrame(display_data)
+st.dataframe(df, hide_index=True, use_container_width=True)
 
-# Load lock state for conditional styling
-group_locks = load_group_result_locks()
-gb_lock = load_golden_boot_result_lock()
-groups_all_locked = all(group_locks.get(letter, False) for letter in group_locks.keys())
-
-
-def _style_all(row: pd.Series) -> list[str]:
-    """Highlight current user and italicize temporary columns."""
-    styles = [""] * len(row)
-
-    # Highlight current user's row
-    if isinstance(row.get("Name", ""), str) and row["Name"].startswith("★"):
-        styles = ["background-color: #2a4a1a; color: #ffd700"] * len(row)
-
-    # Italicize Group column if not locked
-    if "Group" in row.index and not groups_all_locked:
-        idx = row.index.get_loc("Group")
-        if styles[idx]:
-            styles[idx] += " font-style: italic;"
-        else:
-            styles[idx] = "font-style: italic;"
-
-    # Italicize Boot column if not locked
-    if "Boot" in row.index and not gb_lock:
-        idx = row.index.get_loc("Boot")
-        if styles[idx]:
-            styles[idx] += " font-style: italic;"
-        else:
-            styles[idx] = "font-style: italic;"
-
-    return styles
-
-
-styled = df.style.apply(_style_all, axis=1)
-st.dataframe(styled, hide_index=True, use_container_width=True)
-
-if not groups_all_locked or not gb_lock:
-    st.caption("*Italic scores are temporary and update as results are finalized. Finalize results in the admin panel.*")
+st.caption("Scores are calculated dynamically based on entered results and update automatically as the tournament progresses.")
 
 if not user:
     st.caption("Sign in from the Home page to see email addresses, track your own rank, and view everyone's predictions.")
