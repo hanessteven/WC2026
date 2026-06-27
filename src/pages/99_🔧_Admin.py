@@ -269,8 +269,11 @@ with tab_groups:
             st.error(f"Select exactly 8 third-place advancers ({tp_count} selected).")
         else:
             try:
-                save_third_place_advancers(tp_results)
-                st.success("✅ Third-place advancers saved.")
+                skipped = save_third_place_advancers(tp_results)
+                if skipped:
+                    st.warning(f"⚠️ Saved, but Group(s) {', '.join(sorted(skipped))} were skipped — no final ranking entered yet.")
+                else:
+                    st.success("✅ Third-place advancers saved.")
                 st.rerun()
             except Exception as e:
                 st.error(f"Couldn't save: {e}")
@@ -286,7 +289,7 @@ with tab_bracket:
         "These populate the bracket users pick from."
     )
 
-    all_teams_flat = sorted(t["name"] for grp in teams_by_group.values() for t in grp)
+    all_teams_flat = ["TBD"] + sorted(t["name"] for grp in teams_by_group.values() for t in grp)
     existing_bracket = load_real_bracket()
     bracket_by_round: dict[str, list[dict]] = {}
     for m in existing_bracket:
@@ -309,11 +312,11 @@ with tab_bracket:
     new_matchups: list[dict] = []
     for slot in range(1, n_slots + 1):
         saved = saved_matchups.get(slot, {})
-        saved_a = saved.get("team_a")
-        saved_b = saved.get("team_b")
+        saved_a = saved.get("team_a", "TBD")
+        saved_b = saved.get("team_b", "TBD")
 
         a_idx = all_teams_flat.index(saved_a) if saved_a in all_teams_flat else 0
-        b_idx = all_teams_flat.index(saved_b) if saved_b in all_teams_flat else min(1, len(all_teams_flat) - 1)
+        b_idx = all_teams_flat.index(saved_b) if saved_b in all_teams_flat else 0
 
         col_slot, col_a, col_vs, col_b = st.columns([1, 5, 1, 5])
         with col_slot:
@@ -342,7 +345,10 @@ with tab_bracket:
     if st.button(f"💾 Save {LOCK_LABELS[selected_round]} Matchups", type="primary", use_container_width=True):
         errors = [
             f"Slot {m['slot']}: Team A and Team B must be different."
-            for m in new_matchups if m["team_a"] == m["team_b"]
+            for m in new_matchups if m["team_a"] == m["team_b"] and m["team_a"] != "TBD"
+        ] + [
+            f"Slot {m['slot']}: Both teams cannot be TBD."
+            for m in new_matchups if m["team_a"] == "TBD" and m["team_b"] == "TBD"
         ]
         if errors:
             for msg in errors:

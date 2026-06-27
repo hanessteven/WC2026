@@ -91,15 +91,28 @@ def save_group_results(rows: list[dict]) -> None:
     load_leaderboard.clear()
 
 
-def save_third_place_advancers(tp_results: dict[str, bool]) -> None:
-    """Update third_place_advances for all groups. tp_results = {group_letter: bool}."""
-    rows = [
-        {"group_letter": letter, "third_place_advances": advances}
-        for letter, advances in tp_results.items()
-    ]
-    get_admin_client().table("results_group_stage").upsert(
-        rows, on_conflict="group_letter"
-    ).execute()
+def save_third_place_advancers(tp_results: dict[str, bool]) -> list[str]:
+    """Update third_place_advances for groups that already have a final_ranking saved.
+
+    Returns a list of group letters that were skipped due to missing rankings.
+    """
+    existing = load_group_results()
+    rows = []
+    skipped = []
+    for letter, advances in tp_results.items():
+        if letter in existing and existing[letter].get("final_ranking"):
+            rows.append({
+                "group_letter": letter,
+                "final_ranking": existing[letter]["final_ranking"],
+                "third_place_advances": advances,
+            })
+        else:
+            skipped.append(letter)
+    if rows:
+        get_admin_client().table("results_group_stage").upsert(
+            rows, on_conflict="group_letter"
+        ).execute()
+    return skipped
     load_group_results.clear()
     recalculate_all_scores()
     load_leaderboard.clear()
