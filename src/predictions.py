@@ -272,6 +272,18 @@ def load_all_golden_boot_picks() -> list[dict]:
     ]
 
 
+@st.cache_data(ttl=60)
+def load_all_bracket_picks() -> list[dict]:
+    """Return [{user_id, matchup_id, predicted_winner}] for all bracket picks."""
+    return (
+        get_admin_client()
+        .table("predictions_bracket")
+        .select("user_id, matchup_id, predicted_winner")
+        .execute()
+        .data
+    )
+
+
 # ── Leaderboard ────────────────────────────────────────────────────────────────
 
 def _embedded_profile(raw: dict) -> dict:
