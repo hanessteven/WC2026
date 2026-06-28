@@ -4,6 +4,7 @@ from collections import Counter, defaultdict
 
 from src.predictions import (
     load_all_bonus_answers,
+    load_all_bracket_picks,
     load_all_champion_picks,
     load_all_golden_boot_picks,
     load_bonus_answers,
@@ -125,6 +126,35 @@ with col_c:
             gb_data = [{"Player": name, "Picks": count}
                        for name, count in player_counts.most_common(10)]
             st.dataframe(pd.DataFrame(gb_data), hide_index=True, use_container_width=True)
+
+# ── Knockout bracket aggregate picks ─────────────────────────────────────────
+
+_bracket_matchups = load_bracket_matchups()
+_all_bracket_picks = load_all_bracket_picks()
+
+if _bracket_matchups and _all_bracket_picks:
+    # Build lookup: matchup_id -> list of predicted_winner
+    _picks_by_matchup: dict[int, list[str]] = defaultdict(list)
+    for p in _all_bracket_picks:
+        _picks_by_matchup[p["matchup_id"]].append(p["predicted_winner"])
+
+    _ROUND_LABELS = {"R32": "Round of 32", "R16": "Round of 16", "QF": "Quarterfinals", "SF": "Semifinals", "F": "Final"}
+    _bracket_cols = st.columns(5)
+    for _col, _round_code in zip(_bracket_cols, ["R32", "R16", "QF", "SF", "F"]):
+        _matchups = _bracket_matchups.get(_round_code, [])
+        if not _matchups:
+            continue
+        with _col:
+            with st.expander(_ROUND_LABELS[_round_code]):
+                for _m in _matchups:
+                    _votes = _picks_by_matchup.get(_m["id"], [])
+                    if not _votes:
+                        continue
+                    _total = len(_votes)
+                    st.caption(f"**{_m['team_a']} vs {_m['team_b']}**")
+                    for _team, _n in Counter(_votes).most_common():
+                        st.progress(_n / _total, text=f"{_team} — {_n}")
+                    st.markdown("")
 
 # ── Per-user picks dialog ─────────────────────────────────────────────────────
 
