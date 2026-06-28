@@ -112,10 +112,10 @@ def save_third_place_advancers(tp_results: dict[str, bool]) -> list[str]:
         get_admin_client().table("results_group_stage").upsert(
             rows, on_conflict="group_letter"
         ).execute()
-    return skipped
     load_group_results.clear()
     recalculate_all_scores()
     load_leaderboard.clear()
+    return skipped
 
 
 # ── Real bracket ───────────────────────────────────────────────────────────────

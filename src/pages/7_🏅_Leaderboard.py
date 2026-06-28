@@ -8,6 +8,8 @@ from src.predictions import (
     load_all_golden_boot_picks,
     load_bonus_answers,
     load_bonus_questions,
+    load_bracket_matchups,
+    load_bracket_picks,
     load_champion_pick,
     load_golden_boot_picks,
     load_group_predictions,
@@ -202,7 +204,23 @@ else:
 
         st.divider()
         st.markdown("**🏟️ Knockout Bracket**")
-        st.caption("Coming soon — bracket picks will appear here once the knockout stage opens.")
+        matchups_by_round = load_bracket_matchups()
+        bracket_picks = load_bracket_picks(uid)
+        if not matchups_by_round or not bracket_picks:
+            st.caption("No bracket picks yet.")
+        else:
+            ROUND_LABELS = {"R32": "Round of 32", "R16": "Round of 16", "QF": "Quarterfinals", "SF": "Semifinals", "F": "Final"}
+            for round_code in ["R32", "R16", "QF", "SF", "F"]:
+                matchups = matchups_by_round.get(round_code, [])
+                if not matchups:
+                    continue
+                round_picks = [m for m in matchups if bracket_picks.get(m["id"])]
+                if not round_picks:
+                    continue
+                st.caption(f"**{ROUND_LABELS[round_code]}**")
+                for m in round_picks:
+                    pick = bracket_picks[m["id"]]
+                    st.markdown(f"Match {m['slot']}: {m['team_a']} vs {m['team_b']} → **{pick}**")
 
     if st.session_state.get("_spy_target"):
         spy_id = st.session_state.pop("_spy_target")

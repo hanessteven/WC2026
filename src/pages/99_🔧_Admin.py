@@ -346,9 +346,6 @@ with tab_bracket:
         errors = [
             f"Slot {m['slot']}: Team A and Team B must be different."
             for m in new_matchups if m["team_a"] == m["team_b"] and m["team_a"] != "TBD"
-        ] + [
-            f"Slot {m['slot']}: Both teams cannot be TBD."
-            for m in new_matchups if m["team_a"] == "TBD" and m["team_b"] == "TBD"
         ]
         if errors:
             for msg in errors:
