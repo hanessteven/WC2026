@@ -146,15 +146,20 @@ if _bracket_matchups and _all_bracket_picks:
             continue
         with _col:
             with st.expander(_ROUND_LABELS[_round_code]):
+                _rendered = False
                 for _m in _matchups:
                     _votes = _picks_by_matchup.get(_m["id"], [])
                     if not _votes:
                         continue
+                    if _rendered:
+                        st.divider()
+                    _rendered = True
                     _total = len(_votes)
+                    _counts = Counter(_votes)
                     st.caption(f"**{_m['team_a']} vs {_m['team_b']}**")
-                    for _team, _n in Counter(_votes).most_common():
-                        st.progress(_n / _total, text=f"{_team} — {_n}")
-                    st.markdown("")
+                    for _team in [_m["team_a"], _m["team_b"]]:
+                        _n = _counts.get(_team, 0)
+                        st.progress(_n / _total if _total else 0, text=f"{_team} — {_n}")
 
 # ── Per-user picks dialog ─────────────────────────────────────────────────────
 
