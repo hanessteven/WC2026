@@ -386,9 +386,10 @@ with tab_results:
         matchups = sorted(results_by_round[selected_results_round], key=lambda m: m["slot"])
         st.markdown(f"**{LOCK_LABELS[selected_results_round]}**")
 
+        NO_WINNER = "— No winner yet —"
         updates: list[dict] = []
         for m in matchups:
-            winner_options = [m["team_a"], m["team_b"]]
+            winner_options = [NO_WINNER, m["team_a"], m["team_b"]]
             saved_winner = m.get("winner")
             winner_idx = winner_options.index(saved_winner) if saved_winner in winner_options else 0
 
@@ -410,7 +411,11 @@ with tab_results:
                         value=bool(m.get("is_penalty")),
                         key=f"res_pen_{m['id']}",
                     )
-            updates.append({"id": m["id"], "winner": winner, "is_penalty": is_pen})
+            updates.append({
+                "id": m["id"],
+                "winner": None if winner == NO_WINNER else winner,
+                "is_penalty": is_pen,
+            })
 
         st.divider()
         if st.button(f"💾 Save {LOCK_LABELS[selected_results_round]} Results", type="primary", use_container_width=True):
