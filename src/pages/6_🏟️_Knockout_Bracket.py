@@ -118,24 +118,27 @@ for tab, round_code in zip(tabs, ROUNDS):
                     new_picks[m["id"]] = choice if choice != NO_PICK else None
 
             st.divider()
+            picked = {mid: w for mid, w in new_picks.items() if w is not None}
+            # Matches the user blanked out that previously had a saved pick → delete them
+            to_clear = [
+                m["id"] for m in matchups
+                if new_picks.get(m["id"]) is None and m["id"] in existing_picks
+            ]
             unpicked = [m["slot"] for m in matchups if new_picks.get(m["id"]) is None]
             if unpicked:
                 st.caption(
-                    f"Pick all matches before saving. "
-                    f"Missing: {', '.join(f'Match {s}' for s in unpicked)}"
+                    f"{len(picked)} / {n} picked — save now and finish the rest anytime. "
+                    f"Not yet picked: {', '.join(f'Match {s}' for s in unpicked)}"
                 )
             if st.button(
                 f"💾 Save {ROUND_LABELS[round_code]} Picks",
                 type="primary",
                 use_container_width=True,
                 key=f"save_{round_code}",
-                disabled=bool(unpicked),
+                disabled=not (picked or to_clear),
             ):
                 try:
-                    save_bracket_picks(
-                        user["id"],
-                        {mid: w for mid, w in new_picks.items() if w is not None},
-                    )
+                    save_bracket_picks(user["id"], picked, clear_ids=to_clear)
                     st.success(f"✅ {ROUND_LABELS[round_code]} picks saved.")
                     st.rerun()
                 except Exception as e:

@@ -211,16 +211,31 @@ def load_bracket_picks(user_id: str) -> dict[int, str]:
     return {row["matchup_id"]: row["predicted_winner"] for row in result.data}
 
 
-def save_bracket_picks(user_id: str, picks: dict[int, str]) -> None:
-    """Upsert bracket picks for this user. picks = {matchup_id: predicted_winner}."""
+def save_bracket_picks(
+    user_id: str,
+    picks: dict[int, str],
+    clear_ids: list[int] | None = None,
+) -> None:
+    """Upsert bracket picks for this user. picks = {matchup_id: predicted_winner}.
+
+    Partial saves are additive: only the matchups in `picks` are written, so
+    saving a few now and the rest later accumulates rather than overwriting.
+    `clear_ids` removes previously-saved picks the user has un-picked.
+    """
     now = datetime.now(timezone.utc).isoformat()
-    rows = [
-        {"user_id": user_id, "matchup_id": mid, "predicted_winner": winner, "updated_at": now}
-        for mid, winner in picks.items()
-    ]
-    get_admin_client().table("predictions_bracket").upsert(
-        rows, on_conflict="user_id,matchup_id"
-    ).execute()
+    client = get_admin_client()
+    if picks:
+        rows = [
+            {"user_id": user_id, "matchup_id": mid, "predicted_winner": winner, "updated_at": now}
+            for mid, winner in picks.items()
+        ]
+        client.table("predictions_bracket").upsert(
+            rows, on_conflict="user_id,matchup_id"
+        ).execute()
+    if clear_ids:
+        client.table("predictions_bracket").delete().eq(
+            "user_id", user_id
+        ).in_("matchup_id", clear_ids).execute()
     load_bracket_picks.clear()
     recalculate_user_score(user_id)
     load_leaderboard.clear()
